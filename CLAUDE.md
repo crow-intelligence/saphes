@@ -127,6 +127,11 @@ uv sync --all-extras
 - The same calibration study for **Ancient Greek**, for the Homer project. The method
   transfers unchanged; only the corpus differs. Note Greek needs the NFC length policy to
   be honoured end to end, and the treebank cannot supply *B*.
-- No logo yet; the README and mkdocs theme have no banner.
+- Logo lives in `img/`: `saphes_logo.svg` is the 550x150 banner (README, mkdocs header),
+  `saphes_mark.svg` the square sigma-only variant (favicon), `saphes_logo.png` the 2x raster
+  the README embeds. `docs/assets/` holds copies for the mkdocs build. Regenerate the PNG
+  with `rsvg-convert img/saphes_logo.svg -w 1100 -o img/saphes_logo.png`.
+  **The dark panel is a painted `<rect>`, not a CSS `background-color`** — as a style it is
+  ignored by raster converters, which leaves the near-white wordmark invisible.
 - `segment.sentences(punkt=True)` is untested — exercising it would download an NLTK model
   in CI.

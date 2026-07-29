@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+  <!-- Square mark, for the favicon. The sigma and the line of clarity from
+       img/saphes_logo.svg, without the wordmark, which is unreadable at 16px.
+       Geometry is shifted and scaled to sit centred on a square canvas. -->
+  <rect width="150" height="150" fill="#1A1B20" />
+
+  <defs>
+    <!-- Multi-layered neon glow filter for realistic bloom -->
+    <filter id="markGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Vertical Gradient for the Sigma (Lexical Diversity) -->
+    <linearGradient id="markSigmaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/> <!-- Cyan -->
+      <stop offset="100%" stop-color="#D946EF"/> <!-- Magenta -->
+    </linearGradient>
+
+    <g id="mark-paths" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- The Sigma, representing lexical diversity -->
+      <path d="M 105,40 H 51 L 87,75 L 51,110 H 105" stroke="url(#markSigmaGrad)" />
+      <!-- The line of clarity, cutting through the central vertex -->
+      <path d="M 25,75 H 125" stroke="#F59E0B" />
+    </g>
+  </defs>
+
+  <!-- LAYER 1: outer neon glow -->
+  <use href="#mark-paths" stroke-width="13" filter="url(#markGlow)" opacity="0.9" />
+
+  <!-- LAYER 2: solid outer path, keeping the core colours vibrant -->
+  <use href="#mark-paths" stroke-width="13" />
+
+  <!-- LAYER 3: hollow inner track, carved in the background colour so the
+       sigma and the line merge seamlessly where they cross -->
+  <use href="#mark-paths" stroke="#1A1B20" stroke-width="3.8" />
+
+  <!-- LAYER 4: terminal nodes -->
+  <g fill="#FFFFFF">
+    <circle cx="105" cy="40" r="3.2" />
+    <circle cx="51" cy="40" r="3.2" />
+    <circle cx="51" cy="110" r="3.2" />
+    <circle cx="105" cy="110" r="3.2" />
+    <circle cx="87" cy="75" r="4.8" />
+    <circle cx="25" cy="75" r="3.2" />
+    <circle cx="125" cy="75" r="3.2" />
+  </g>
+</svg>

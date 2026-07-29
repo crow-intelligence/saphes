@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/saphes_logo.svg" alt="saphes logo" width="480">
+</p>
+
 # saphes
 
 Readability and lexical diversity — two metrics, done carefully, with the parameters other

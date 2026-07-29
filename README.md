@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/crow-intelligence/saphes/main/img/saphes_logo.png" alt="saphes logo" width="480">
+</p>
+
 # saphes
 
 Readability and lexical diversity — two metrics, done carefully, with the parameters other
@@ -137,7 +141,7 @@ drift.
 
 **Maintenance**
 
-- [ ] Logo and README banner
+- [x] Logo and README banner
 - [ ] Mutation-testing baseline
 
 Explicitly out of scope: Flesch, Kincaid, SMOG and relatives. They need syllabification, which

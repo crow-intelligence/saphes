@@ -16,6 +16,10 @@ extra:
 
 theme:
   name: material
+  logo: assets/saphes_logo.svg
+  # A square mark for the favicon — the 550x150 banner letterboxes to nothing
+  # at 16px, and the wordmark is unreadable there anyway.
+  favicon: assets/saphes_mark.svg
   features:
     - navigation.sections
     - content.code.copy
