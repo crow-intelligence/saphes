@@ -14,6 +14,6 @@ python:
       path: .
     - requirements: docs/requirements.txt
 
-formats:
-  - pdf
-  - epub
+# No `formats:` key. PDF and ePub are Sphinx-only on Read the Docs, so
+# declaring them in an MkDocs project silently builds nothing and advertises
+# downloads that 404.

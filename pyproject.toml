@@ -8,7 +8,8 @@ authors = [
     { name = "Orsolya Putz", email = "orsolya.putz@crowintelligence.org" },
 ]
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = [
     "nlp",
     "readability",
@@ -22,7 +23,8 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    # No "License ::" classifier: deprecated by PEP 639 in favour of the
+    # `license` SPDX expression above.
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
