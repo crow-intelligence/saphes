@@ -17,6 +17,11 @@ try:
 except PackageNotFoundError:  # pragma: no cover - only when running uninstalled
     __version__ = "0.0.0+unknown"
 
+from saphes.calibration import (  # noqa: E402 - __version__ must precede these
+    ThresholdRecommendation,
+    hungarian_letter_count,
+    recommended_threshold,
+)
 from saphes.diversity import (  # noqa: E402 - __version__ must precede these
     DiversityResult,
     lexical_diversity,
@@ -38,12 +43,15 @@ __all__ = [
     "LIX_BANDS",
     "DiversityResult",
     "LixResult",
+    "ThresholdRecommendation",
     "__version__",
+    "hungarian_letter_count",
     "interpret_lix",
     "lexical_diversity",
     "lix",
     "lix_from_counts",
     "mattr",
+    "recommended_threshold",
     "rix",
     "sentences",
     "ttr_from_counts",

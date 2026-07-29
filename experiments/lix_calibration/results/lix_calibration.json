@@ -1,0 +1,312 @@
+{
+  "caveats": [
+    "The MOKK Webcorpus crawl is from winter 2003: 2000s web Hungarian, not song lyrics, not literary prose. A general-language reference, not a register match.",
+    "Register matters for readability. Before trusting this threshold on your own texts, recompute the long-word share on a sample of them and check it lands where the calibration predicts.",
+    "A calibrated threshold is a default, not a truth. The parameter stays exposed precisely because no single number is right everywhere."
+  ],
+  "curves": {
+    "leipzig-hun": {
+      "length_policy": "nfc",
+      "mean_length": 5.9373,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.894382,
+        "10": 0.108382,
+        "11": 0.06815,
+        "12": 0.04016,
+        "13": 0.0234,
+        "14": 0.012889,
+        "15": 0.007073,
+        "16": 0.003656,
+        "17": 0.001869,
+        "18": 0.000853,
+        "19": 0.000319,
+        "2": 0.787998,
+        "20": 0.000146,
+        "3": 0.713198,
+        "4": 0.622392,
+        "5": 0.518674,
+        "6": 0.416806,
+        "7": 0.319193,
+        "8": 0.234335,
+        "9": 0.163381
+      },
+      "tokens": 15786586,
+      "types": 151296
+    },
+    "leipzig-swe": {
+      "length_policy": "nfc",
+      "mean_length": 5.0522,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.964014,
+        "10": 0.059725,
+        "11": 0.039025,
+        "12": 0.026973,
+        "13": 0.019272,
+        "14": 0.013302,
+        "15": 0.008826,
+        "16": 0.005924,
+        "17": 0.003831,
+        "18": 0.002306,
+        "19": 0.001417,
+        "2": 0.841103,
+        "20": 0.000771,
+        "3": 0.580893,
+        "4": 0.46979,
+        "5": 0.353671,
+        "6": 0.256512,
+        "7": 0.18601,
+        "8": 0.129992,
+        "9": 0.087835
+      },
+      "tokens": 14284223,
+      "types": 89887
+    },
+    "mokk-4pct": {
+      "length_policy": "nfc",
+      "mean_length": 6.2405,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.90034,
+        "10": 0.138475,
+        "11": 0.091648,
+        "12": 0.057937,
+        "13": 0.03487,
+        "14": 0.020399,
+        "15": 0.011722,
+        "16": 0.006354,
+        "17": 0.00334,
+        "18": 0.001739,
+        "19": 0.000829,
+        "2": 0.797297,
+        "20": 0.000397,
+        "3": 0.724391,
+        "4": 0.639951,
+        "5": 0.539777,
+        "6": 0.445232,
+        "7": 0.353841,
+        "8": 0.273325,
+        "9": 0.198326
+      },
+      "tokens": 554861558,
+      "types": 1422686
+    },
+    "mokk-4pct-asterisk-dropped": {
+      "length_policy": "nfc",
+      "mean_length": 6.3725,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.910888,
+        "10": 0.14421,
+        "11": 0.095488,
+        "12": 0.060404,
+        "13": 0.036423,
+        "14": 0.021352,
+        "15": 0.012276,
+        "16": 0.006661,
+        "17": 0.003499,
+        "18": 0.001824,
+        "19": 0.000867,
+        "2": 0.812873,
+        "20": 0.000417,
+        "3": 0.740838,
+        "4": 0.654847,
+        "5": 0.554979,
+        "6": 0.459423,
+        "7": 0.365666,
+        "8": 0.283259,
+        "9": 0.205971
+      },
+      "tokens": 517267619,
+      "types": 1392317
+    },
+    "mokk-4pct-digraphs-collapsed": {
+      "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 5.9668,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.900316,
+        "10": 0.116647,
+        "11": 0.074356,
+        "12": 0.045055,
+        "13": 0.025994,
+        "14": 0.014721,
+        "15": 0.007833,
+        "16": 0.003932,
+        "17": 0.001973,
+        "18": 0.000907,
+        "19": 0.00044,
+        "2": 0.785928,
+        "20": 0.000213,
+        "3": 0.695475,
+        "4": 0.621939,
+        "5": 0.511632,
+        "6": 0.415134,
+        "7": 0.327098,
+        "8": 0.244012,
+        "9": 0.17302
+      },
+      "tokens": 554861558,
+      "types": 1422686
+    },
+    "mokk-8pct": {
+      "length_policy": "nfc",
+      "mean_length": 6.1612,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.902699,
+        "10": 0.130518,
+        "11": 0.08591,
+        "12": 0.053857,
+        "13": 0.032283,
+        "14": 0.018764,
+        "15": 0.01073,
+        "16": 0.005814,
+        "17": 0.00307,
+        "18": 0.001598,
+        "19": 0.000767,
+        "2": 0.798775,
+        "20": 0.000371,
+        "3": 0.721769,
+        "4": 0.634867,
+        "5": 0.531582,
+        "6": 0.434361,
+        "7": 0.342401,
+        "8": 0.261988,
+        "9": 0.188773
+      },
+      "tokens": 870983275,
+      "types": 2007713
+    },
+    "mokk-full": {
+      "length_policy": "nfc",
+      "mean_length": 5.963,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.911099,
+        "10": 0.115034,
+        "11": 0.074867,
+        "12": 0.046284,
+        "13": 0.027455,
+        "14": 0.015837,
+        "15": 0.009039,
+        "16": 0.004939,
+        "17": 0.002635,
+        "18": 0.00139,
+        "19": 0.000693,
+        "2": 0.800364,
+        "20": 0.000346,
+        "3": 0.706135,
+        "4": 0.611439,
+        "5": 0.505494,
+        "6": 0.407366,
+        "7": 0.315983,
+        "8": 0.237511,
+        "9": 0.168716
+      },
+      "tokens": 1360685516,
+      "types": 3023270
+    }
+  },
+  "generated": "2026-07-29T17:08:25+00:00",
+  "method": {
+    "capitalisation_marker": "strip-trailing-asterisk-then-merge",
+    "equipercentile_reference_threshold": 6,
+    "length_policy": "nfc",
+    "min_frequency": 5,
+    "stratum": "4pct",
+    "weighting": "token"
+  },
+  "recommendation": {
+    "agreement": {
+      "leipzig-hun": 8,
+      "mokk-4pct": 8,
+      "mokk-4pct-asterisk-dropped": 8,
+      "mokk-4pct-digraphs-collapsed": 8,
+      "mokk-8pct": 8,
+      "mokk-full": 8
+    },
+    "bracket": [
+      8,
+      9
+    ],
+    "is_boundary": false,
+    "language": "hu",
+    "long_word_threshold": 8,
+    "matched_share": 0.273325,
+    "reference_id": "leipzig-swe_news_2022_1M",
+    "reference_share": 0.256512,
+    "reference_threshold": 6,
+    "residual": 0.016813,
+    "runner_up": 9,
+    "runner_up_residual": 0.058187
+  },
+  "saphes_version": "0.1.0",
+  "schema_version": 1,
+  "smoke_run": false,
+  "sources": {
+    "hu_crosscheck": {
+      "citation": [
+        "Goldhahn, Eckart, Quasthoff (2012). Building large monolingual dictionaries at the Leipzig Corpora Collection. LREC."
+      ],
+      "corpus_meta": {
+        "SENTENCES": "1000000",
+        "SOURCES": "129756",
+        "WORD_TOKENS": "19985331",
+        "WORD_TYPES": "850627",
+        "build date": "2023-02-15",
+        "git revision resources": "3fb4dd0f23a5d1eb7f5564a751a74874c9fb0ecc",
+        "git revision toolchain": "09f0edfc25563b4082e62691c1e255099c33f1e9"
+      },
+      "download": {
+        "bytes": 242152696,
+        "sha256": "60b78adfdb462353699bf453541da796e37f082d4496a75b9ddfc7d37f617dec",
+        "url": "https://downloads.wortschatz-leipzig.de/corpora/hun_news_2022_1M.tar.gz"
+      },
+      "file": "hun_news_2022_1M.tar.gz",
+      "id": "leipzig-hun_news_2022_1M"
+    },
+    "hu_primary": {
+      "citation": [
+        "Hal\u00e1csy, Kornai, N\u00e9meth, Rung, Szakad\u00e1t, Tr\u00f3n (2004). Creating open language resources for Hungarian. LREC.",
+        "Kornai, Hal\u00e1csy, Nagy, Oravecz, Tr\u00f3n, Varga (2006). Web-based frequency dictionaries for medium density languages. Web as Corpus, ACL."
+      ],
+      "download": {
+        "bytes": 120512445,
+        "sha256": "3221f4a8a682a044a7abb34287fd553bb3c4360df2fa57857adeac7da2d5e9ce",
+        "url": "ftp://ftp.mokk.bme.hu/Language/Hungarian/Freq/Web2.2/web2.2-freq-sorted.txt.gz"
+      },
+      "file": "web2.2-freq-sorted.txt.gz",
+      "id": "mokk-web2.2-4pct"
+    },
+    "sv_reference": {
+      "citation": [
+        "Goldhahn, Eckart, Quasthoff (2012). Building large monolingual dictionaries at the Leipzig Corpora Collection. LREC."
+      ],
+      "corpus_meta": {
+        "SENTENCES": "1000000",
+        "SOURCES": "202328",
+        "WORD_TOKENS": "16899988",
+        "WORD_TYPES": "525874",
+        "build date": "2023-02-15",
+        "git revision resources": "3fb4dd0f23a5d1eb7f5564a751a74874c9fb0ecc",
+        "git revision toolchain": "09f0edfc25563b4082e62691c1e255099c33f1e9"
+      },
+      "download": {
+        "bytes": 191328913,
+        "sha256": "a39c02c421590a21ba5a7e6d5986b6eeff5eeb37b55dcb0c468c8256da1b00c4",
+        "url": "https://downloads.wortschatz-leipzig.de/corpora/swe_news_2022_1M.tar.gz"
+      },
+      "file": "swe_news_2022_1M.tar.gz",
+      "id": "leipzig-swe_news_2022_1M"
+    }
+  }
+}
