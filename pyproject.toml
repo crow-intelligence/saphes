@@ -1,0 +1,109 @@
+[project]
+name = "saphes"
+version = "0.1.0"
+description = "Readability (LIX) and lexical diversity (TTR/MATTR) with the parameters other implementations hardcode"
+readme = "README.md"
+authors = [
+    { name = "Zoltan Varju", email = "zoltan.varju@crowintelligence.org" },
+    { name = "Orsolya Putz", email = "orsolya.putz@crowintelligence.org" },
+]
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = [
+    "nlp",
+    "readability",
+    "lix",
+    "lexical-diversity",
+    "type-token-ratio",
+    "mattr",
+    "corpus-linguistics",
+    "computational-humanities",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Linguistic",
+]
+# The core is deliberately dependency-free: plain Python and the standard
+# library only. Lemmatisation, tagging, and heavyweight sentence splitting are
+# the caller's job — saphes measures what it is given.
+dependencies = []
+
+[project.urls]
+Homepage = "https://crowintelligence.org/"
+Repository = "https://github.com/crow-intelligence/saphes"
+Documentation = "https://saphes.readthedocs.io"
+
+[project.optional-dependencies]
+# Optional NLTK Punkt sentence splitter for `segment.sentences(..., punkt=True)`.
+# The core never imports it; the bundled regex splitter is the default.
+punkt = [
+    "nltk>=3.8",
+]
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+    "hypothesis>=6.100",
+    "ruff>=0.4",
+    "ty",
+    "mutmut>=3",
+    # Reference implementation for the LIX cross-check. Pulls in nltk.
+    "textstat>=0.7",
+    # experiment deps -- not part of the published package
+    "matplotlib>=3.8",
+    "jupyter>=1.0",
+    "ipykernel>=6.29",
+]
+docs = [
+    "mkdocs-material",
+    "mkdocstrings[python]",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.22,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "ANN", "D"]
+ignore = ["D105", "D107"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D100", "D102", "D103", "D104", "ANN"]
+"examples/**" = ["D100", "ANN"]
+"experiments/**" = ["D100", "D103", "ANN"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --tb=short"
+testpaths = ["src", "tests"]
+
+# Mutation testing (dev-only, not run in CI). Scoped to the arithmetic core and
+# its fast test files. Run with `SAPHES_MUTATION=1 uv run mutmut run`.
+[tool.mutmut]
+source_paths = ["src/saphes"]
+only_mutate = [
+    "src/saphes/readability.py",
+    "src/saphes/diversity.py",
+    "src/saphes/segment.py",
+]
+pytest_add_cli_args_test_selection = [
+    "tests/test_readability.py",
+    "tests/test_diversity.py",
+    "tests/test_segment.py",
+    "tests/test_contracts.py",
+]
+pytest_add_cli_args = ["-p", "no:cacheprovider"]
+
+[tool.ty]

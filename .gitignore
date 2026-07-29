@@ -1,0 +1,36 @@
+# Source literature — ground truth for the methods, never version controlled
+papers/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Built documentation (mkdocs output)
+site/
+
+# Test artifacts
+.coverage
+.hypothesis/
+.pytest_cache/
+.ruff_cache/
+
+# Mutation testing (mutmut) working copy and cache
+mutants/
+.mutmut-cache
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Calibration corpora — multi-hundred-megabyte downloads, never version
+# controlled. The committed artifact is the results JSON, not the corpus.
+experiments/lix_calibration/data/
+
+# Local harness / session state
+.claude/
