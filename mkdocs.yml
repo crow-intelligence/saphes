@@ -1,0 +1,63 @@
+site_name: saphes
+site_description: Readability (LIX) and lexical diversity (TTR/MATTR), made auditable
+site_url: https://saphes.readthedocs.io
+repo_url: https://github.com/crow-intelligence/saphes
+repo_name: crow-intelligence/saphes
+
+# Fail the build on any warning (broken links, missing autodoc targets, dead
+# snippet paths). Keeps the published docs honest.
+strict: true
+
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://crowintelligence.org/
+      name: Crow Intelligence
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  # Pull the verified example scripts into the docs so they never drift.
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+
+nav:
+  - Getting Started:
+      - index.md
+      - quickstart.md
+  - Tutorials:
+      - tutorials/two_contracts.md
+      - tutorials/threshold_saturation.md
+  - Examples:
+      - examples/lix_quickstart.md
+      - examples/two_contracts.md
+  - Troubleshooting: troubleshooting.md
+  - API Reference:
+      - api/readability.md
+      - api/diversity.md
+      - api/calibration.md
+      - api/segment.md
+      - api/datasets.md
