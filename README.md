@@ -42,28 +42,14 @@ The core has **no dependencies** — plain Python and the standard library.
 ```python
 from saphes import lix, lexical_diversity
 
-# LIX takes SURFACE FORMS. Word length is the signal.
+# LIX takes SURFACE FORMS — word length is the signal.
 result = lix("The cat sat on it. Complicated sentences generally frighten us.")
-result.score            # 45.0
-result.words, result.sentences, result.long_words   # (10, 2, 4)  -> A, B, C
-result.band             # 'standard'
+result.score                                       # 45.0
+result.words, result.sentences, result.long_words  # (10, 2, 4)  -> A, B, C
+result.band                                        # 'standard'
 
-# Raise the threshold for inflected languages, where 6 saturates.
-hu = "A gyermekeknek megmutatták a településeken található nevezetességeket. Elutaztak."
-lix(hu).score                                  # 79.0 — an ordinary sentence, "very difficult"
-lix(hu).long_word_share                        # 0.75 — three words in four are "long"
-lix(hu, long_word_threshold=9).score           # 54.0 — discrimination restored
-lix(hu, long_word_threshold=9).long_word_share # 0.50
-
-# Or use the calibrated default, with its provenance attached.
-from saphes import recommended_threshold
-rec = recommended_threshold("hu")
-rec.threshold        # 8
-rec.matched_share    # 0.273 — against Swedish 0.257 at threshold 6
-lix(hu, long_word_threshold=int(rec))
-
-# Diversity takes LEMMAS, and `unit` is required — no default.
-lexical_diversity(["ház", "kutya", "ház"], unit="lemma")
+# Diversity takes LEMMAS, and `unit` is required — there is no default.
+lexical_diversity(lemmas, unit="lemma")
 
 # Comparing texts of different lengths? Use MATTR, not TTR.
 lexical_diversity(lemmas, unit="lemma", window=100).mattr
@@ -71,62 +57,38 @@ lexical_diversity(lemmas, unit="lemma", window=100).mattr
 
 ## The data contract
 
-The single most important thing in this package: **the two metrics require opposite token
-streams.**
+The two metrics require **opposite** token streams.
 
-| Metric | Required input | Why |
+| Metric | Wants | Because |
 |---|---|---|
 | `lexical_diversity` | **lemmas** | Surface variation is *noise* — it measures morphology, not vocabulary. Hungarian `ház / házak / házban / házakat` is four types and one lemma. |
-| `lix` | **surface forms** | Word length *is* the signal. `házakban` is 8 characters; its lemma `ház` is 3. Lemmatising erases the measurement. |
+| `lix` | **surface forms** | Word length *is* the signal. `házakban` is 8 characters; its lemma `ház` is 3. |
 
-Feed the same list to both and exactly one of them is silently wrong — no error, no NaN, just
-a plausible number. Four guards exist against that:
-
-- `unit` is a **required** keyword on `lexical_diversity`, with no default.
-- The parameter names differ: `lemmas=` versus `words=`. Crossing them raises.
-- A raw string is **refused** by `lexical_diversity` unless you pass `unit="surface"`, since a
-  string can only ever yield surface forms.
-- Every result records the `unit` it measured, so any serialised table says which stream
-  produced each number.
+Feed the same list to both and exactly one is silently wrong — no error, no NaN, just a
+plausible number. `unit` is required, the parameter names differ, a raw string is refused
+where it could only be wrong, and every result records what it measured.
 
 **saphes consumes lemmas; it does not produce them.** Lemmatisation is language-specific and
 heavy — CLTK or a treebank for Greek, huspacy for Hungarian. The caller lemmatises; saphes
 measures.
 
-## Features
-
-- **`lix(...)`** — the readability index, with `long_word_threshold` as a first-class
-  parameter. A long word is `len(word) > threshold`, so the default 6 means **seven letters or
-  more**, per Björnsson's "more than six letters".
-- **Three ways to supply the sentence count *B*** — segmented from raw text with a pluggable
-  splitter, pre-split, or an explicit integer. Neither a treebank that drops punctuation nor a
-  spaCy pipeline with the parser disabled can give you sentences, so the explicit path is not
-  a corner case. The result records which was used.
-- **`lexical_diversity(...)`** — TTR and MATTR, with the token unit declared and recorded.
-- **`mattr(tokens, window=100)`** — the length-corrected moving average, as a bare float, for
-  drop-in use.
-- **Calibrated thresholds, with their provenance.** `recommended_threshold("hu")` returns the
-  empirically matched threshold *and* the shares behind it, the runner-up, which of six
-  independently computed curves agreed, and the caveats. The number ships; the corpus does
-  not. The study is in `experiments/lix_calibration/`.
-- **Counts, not just scores.** Every function returns *A*, *B*, *C* (or types and tokens) plus
-  every parameter used and the saphes version. A bare float is unauditable.
-- **Explicit length policy.** Decomposed Unicode otherwise inflates every word length, which
-  hits polytonic Greek and accented Hungarian hardest. `length_policy` defaults to NFC
-  normalisation and can be swapped for grapheme counting, raw code points, or your own
-  callable.
-
-> [!WARNING]
-> **TTR is inversely related to text length.** TTR values from texts of different lengths are
-> **not comparable** — a raw TTR over corpora of different sizes mostly ranks them by size.
-> This matters directly for per-decade and per-book work, where lengths always differ. Pass
-> `window=` and read `.mattr` instead.
-
 ## Documentation
 
-Full docs at [saphes.readthedocs.io](https://saphes.readthedocs.io); sources in `docs/`.
-Worked examples live in `examples/` and are included in the docs verbatim, so they cannot
-drift.
+[saphes.readthedocs.io](https://saphes.readthedocs.io), organised by
+[Diátaxis](https://diataxis.fr/):
+
+- **[Tutorial](https://saphes.readthedocs.io/en/latest/tutorial/first-measurement/)** — new
+  here? Measure your first text in about ten minutes, with nothing to download.
+- **[How-to guides](https://saphes.readthedocs.io/en/latest/how-to/install/)** — supply a
+  sentence count, compare texts of different lengths, calibrate a threshold, diagnose a
+  surprise.
+- **[Reference](https://saphes.readthedocs.io/en/latest/reference/)** — every function, its
+  contract and its failure modes, plus the calibration data.
+- **[Explanation](https://saphes.readthedocs.io/en/latest/explanation/two-token-streams/)** —
+  why the two metrics need opposite input, why the threshold has to move, and why
+  implementations disagree.
+
+Every code block in the docs is executed by CI, so nothing there can drift.
 
 ## Roadmap
 

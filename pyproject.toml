@@ -88,8 +88,11 @@ ignore = ["D105", "D107"]
 convention = "google"
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --tb=short"
-testpaths = ["src", "tests"]
+# --doctest-glob puts the docs under test: every `>>>` in a tutorial or how-to
+# guide is executed on every run. A tutorial that promises success while nothing
+# checks it is promising nothing.
+addopts = "--doctest-modules --doctest-glob=*.md --tb=short"
+testpaths = ["src", "tests", "docs"]
 
 # Mutation testing (dev-only, not run in CI). Scoped to the arithmetic core and
 # its fast test files. Run with `SAPHES_MUTATION=1 uv run mutmut run`.

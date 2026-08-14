@@ -89,24 +89,26 @@ def collapse_digraphs(word: str, *, digraphs: tuple[str, ...] = HU_DIGRAPHS) -> 
 
     Contract:
         Preconditions:
-            - ``word`` must be a ``str``; ``bytes`` raises ``TypeError``
-              (implicit, from ``str.replace`` at
-              calibration.py:135).
-            - ``word`` must already be **lowercase**. Matching is
-              case-sensitive, so ``"Ország"`` keeps its ``sz`` uncollapsed and
-              returns the wrong length with no error. ``hungarian_letter_count``
-              case-folds first; this function does not.
-            - ``digraphs`` must be ordered **longest first**, or a shorter
-              digraph consumes the prefix of a longer one — ``dz`` would eat
-              ``dzs``. The default ``HU_DIGRAPHS`` is ordered correctly; a
-              caller-supplied tuple is not checked.
+
+        - ``word`` must be a ``str``; ``bytes`` raises ``TypeError``
+          (implicit, from ``str.replace`` at
+          calibration.py:137).
+        - ``word`` must already be **lowercase**. Matching is
+          case-sensitive, so ``"Ország"`` keeps its ``sz`` uncollapsed and
+          returns the wrong length with no error. ``hungarian_letter_count``
+          case-folds first; this function does not.
+        - ``digraphs`` must be ordered **longest first**, or a shorter
+          digraph consumes the prefix of a longer one — ``dz`` would eat
+          ``dzs``. The default ``HU_DIGRAPHS`` is ordered correctly; a
+          caller-supplied tuple is not checked.
 
         Guarantees:
-            - The result is never longer than the input.
-            - Collapsing is applied longest-first, so ``dzs`` is one letter, not
-              ``dz`` plus ``s``.
-            - Only the length of the result is meaningful. It is not a word and
-              not a transliteration.
+
+        - The result is never longer than the input.
+        - Collapsing is applied longest-first, so ``dzs`` is one letter, not
+          ``dz`` plus ``s``.
+        - Only the length of the result is meaningful. It is not a word and
+          not a transliteration.
 
     Examples:
         ``sz`` is one letter, so ``ország`` is five letters, not six:
@@ -151,15 +153,17 @@ def hungarian_letter_count(word: str) -> int:
 
     Contract:
         Preconditions:
-            - ``word`` must be a ``str``.
+
+        - ``word`` must be a ``str``.
 
         Guarantees:
-            - Case-insensitive, unlike ``collapse_digraphs``, which it wraps.
-            - Never exceeds ``len(word)``.
-            - Correct only for Hungarian orthography, and **not always then**:
-              a digraph spanning a morpheme boundary is miscounted, as
-              ``collapse_digraphs`` documents with ``község``. This is a
-              sensitivity check, not ground truth.
+
+        - Case-insensitive, unlike ``collapse_digraphs``, which it wraps.
+        - Never exceeds ``len(word)``.
+        - Correct only for Hungarian orthography, and **not always then**:
+          a digraph spanning a morpheme boundary is miscounted, as
+          ``collapse_digraphs`` documents with ``község``. This is a
+          sensitivity check, not ground truth.
 
     Examples:
         ``ország`` is six characters but five letters — ``sz`` is one letter:
@@ -220,13 +224,15 @@ class LengthCurve:
 
         Contract:
             Preconditions:
-                - ``threshold`` must be one of the thresholds this curve was
-                  built with, i.e. ``0..max_threshold``. Anything else raises
-                  ``KeyError`` naming the covered range — it does not
-                  extrapolate or return zero.
+
+            - ``threshold`` must be one of the thresholds this curve was
+              built with, i.e. ``0..max_threshold``. Anything else raises
+              ``KeyError`` naming the covered range — it does not
+              extrapolate or return zero.
 
             Guarantees:
-                - Linear scan, not a lookup; curves are short by construction.
+
+            - Linear scan, not a lookup; curves are short by construction.
 
         Examples:
             >>> curve = length_curve({"a": 10, "abcd": 5}, label="demo")
@@ -402,40 +408,43 @@ def length_curve(
 
     Contract:
         Preconditions:
-            - ``counts`` must be a **Mapping**, not a sequence of pairs. A list
-              of ``(word, count)`` tuples — a natural reading of the name —
-              raises ``AttributeError: 'list' object has no attribute 'items'``
-              (implicit, at
-              calibration.py:474).
-            - Keys must be strings, or ``word_length`` raises ``TypeError``.
-            - Values must be **token frequencies in running text**, not ones.
-              This is the study's likeliest silent failure and the signature is
-              the only guard: a mapping of all-1 counts is perfectly valid input
-              and yields the type-weighted curve, which runs far above the
-              truth while still looking plausible.
-            - Values should be ``int``. Floats are **not** rejected — they pass
-              the comparisons and the addition — so a float frequency makes
-              ``LengthCurve.tokens`` a float despite its ``int`` annotation.
-            - ``length_policy``, if callable, must return an int; a
-              zero-returning policy silently drops the word at
-              calibration.py:481.
+
+        - ``counts`` must be a **Mapping**, not a sequence of pairs. A list
+          of ``(word, count)`` tuples — a natural reading of the name —
+          raises ``AttributeError: 'list' object has no attribute 'items'``
+          (implicit, at
+          calibration.py:483).
+        - Keys must be strings, or ``word_length`` raises ``TypeError``.
+        - Values must be **token frequencies in running text**, not ones.
+          This is the study's likeliest silent failure and the signature is
+          the only guard: a mapping of all-1 counts is perfectly valid input
+          and yields the type-weighted curve, which runs far above the
+          truth while still looking plausible.
+        - Values should be ``int``. Floats are **not** rejected — they pass
+          the comparisons and the addition — so a float frequency makes
+          ``LengthCurve.tokens`` a float despite its ``int`` annotation.
+        - ``length_policy``, if callable, must return an int; a
+          zero-returning policy silently drops the word at
+          calibration.py:490.
 
         Guarantees:
-            - Shares are non-increasing as the threshold rises.
-            - Every share lies in ``[0, 1]``; the share above 0 is exactly 1.0,
-              since every surviving word has at least one letter.
-            - Weighting is by token, never by type. **Passing all-1 counts
-              yields the type-weighted curve, which is not what you want** —
-              rare types are long, so it runs far above the truth while still
-              looking plausible.
-            - A curve that would be empty raises rather than returning zeros, so
-              an over-aggressive ``min_frequency`` cannot pass unnoticed.
+
+        - Shares are non-increasing as the threshold rises.
+        - Every share lies in ``[0, 1]``; the share above 0 is exactly 1.0,
+          since every surviving word has at least one letter.
+        - Weighting is by token, never by type. **Passing all-1 counts
+          yields the type-weighted curve, which is not what you want** —
+          rare types are long, so it runs far above the truth while still
+          looking plausible.
+        - A curve that would be empty raises rather than returning zeros, so
+          an over-aggressive ``min_frequency`` cannot pass unnoticed.
 
         Silences:
-            - Words whose measured length is zero are skipped without record at
-              calibration.py:481 — they count toward neither ``tokens``
-              nor ``types``. With the built-in policies only the empty string
-              does this; with a custom policy it may not be.
+
+        - Words whose measured length is zero are skipped without record at
+          calibration.py:490 — they count toward neither ``tokens``
+          nor ``types``. With the built-in policies only the empty string
+          does this; with a custom policy it may not be.
 
     Examples:
         Three types, twenty running tokens:
@@ -539,31 +548,33 @@ def match_threshold(
 
     Contract:
         Preconditions:
-            - ``reference`` must have been computed out to at least
-              ``reference_threshold``, or ``share_above`` raises ``KeyError``.
-            - Both curves should have been built with the **same**
-              ``length_policy`` and ``min_frequency``. Nothing checks this, and
-              mismatched curves compare cleanly and produce a wrong threshold.
-              Both parameters are recorded on each ``LengthCurve`` so the
-              mismatch is at least auditable after the fact.
-            - The two curves must come from comparable corpora for the result to
-              mean anything. This is a methodological precondition the code
-              cannot enforce.
+
+        - ``reference`` must have been computed out to at least
+          ``reference_threshold``, or ``share_above`` raises ``KeyError``.
+        - Both curves should have been built with the **same**
+          ``length_policy`` and ``min_frequency``. Nothing checks this, and
+          mismatched curves compare cleanly and produce a wrong threshold.
+          Both parameters are recorded on each ``LengthCurve`` so the
+          mismatch is at least auditable after the fact.
+        - The two curves must come from comparable corpora for the result to
+          mean anything. This is a methodological precondition the code
+          cannot enforce.
 
         Guarantees:
-            - The chosen threshold minimises
-              ``abs(target_share - reference_share)`` over the target curve;
-              ties go to the lower threshold.
-            - ``bracket`` spans the two consecutive thresholds the reference
-              share falls between, so a result sitting on a boundary is visible
-              rather than rounded away.
-            - ``runner_up`` is the second-ranked threshold, or the winner itself
-              when the target curve has exactly one point (
-              calibration.py:597
-              ). In that degenerate case ``is_boundary`` compares the winner
-              with itself and reports ``True``.
-            - The whole target curve travels on ``table``, so the choice stays
-              revisable.
+
+        - The chosen threshold minimises
+          ``abs(target_share - reference_share)`` over the target curve;
+          ties go to the lower threshold.
+        - ``bracket`` spans the two consecutive thresholds the reference
+          share falls between, so a result sitting on a boundary is visible
+          rather than rounded away.
+        - ``runner_up`` is the second-ranked threshold, or the winner itself
+          when the target curve has exactly one point (
+          calibration.py:608
+          ). In that degenerate case ``is_boundary`` compares the winner
+          with itself and reports ``True``.
+        - The whole target curve travels on ``table``, so the choice stays
+          revisable.
 
     Examples:
         A target language whose words run longer than the reference's needs a
@@ -747,30 +758,33 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
 
     Contract:
         Preconditions:
-            - ``language`` must be a key of the shipped calibration table.
-              Unknown languages raise ``KeyError`` listing what is available —
-              deliberately, rather than falling back to Björnsson's 6, which
-              would be a silent wrong answer for exactly the languages this
-              package exists to serve.
-            - Lookup is exact and case-sensitive: ``"HU"`` and ``"hun"`` both
-              raise.
+
+        - ``language`` must be a key of the shipped calibration table.
+          Unknown languages raise ``KeyError`` listing what is available —
+          deliberately, rather than falling back to Björnsson's 6, which
+          would be a silent wrong answer for exactly the languages this
+          package exists to serve.
+        - Lookup is exact and case-sensitive: ``"HU"`` and ``"hun"`` both
+          raise.
 
         Guarantees:
-            - Pure and offline. The number ships in the package; no corpus and
-              no network are involved.
-            - Every field is coerced to its declared type on the way out, so a
-              malformed generated record fails here rather than downstream.
+
+        - Pure and offline. The number ships in the package; no corpus and
+          no network are involved.
+        - Every field is coerced to its declared type on the way out, so a
+          malformed generated record fails here rather than downstream.
 
         Silences:
-            - Depends on ``saphes.datasets._lix_calibration``, which is
-              **generated** by ``experiments/lix_calibration/scripts/run.py``
-              and imported lazily at
-              calibration.py:775.
-              Nothing verifies that the shipped literal matches the committed
-              JSON it was produced from, and nothing can — the corpora are not
-              distributed. A hand-edit to that module would be invisible here;
-              the guard against it is that the same numbers also live in
-              ``findings.md`` and ``results/lix_calibration.json``.
+
+        - Depends on ``saphes.datasets._lix_calibration``, which is
+          **generated** by ``experiments/lix_calibration/scripts/run.py``
+          and imported lazily at
+          calibration.py:789.
+          Nothing verifies that the shipped literal matches the committed
+          JSON it was produced from, and nothing can — the corpora are not
+          distributed. A hand-edit to that module would be invisible here;
+          the guard against it is that the same numbers also live in
+          ``findings.md`` and ``results/lix_calibration.json``.
     """
     from saphes.datasets._lix_calibration import CALIBRATIONS
 
@@ -810,13 +824,15 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
 
     Contract:
         Guarantees:
-            - Total: returns a string for any input.
+
+        - Total: returns a string for any input.
 
         Silences:
-            - A missing ``__qualname__`` falls back to ``repr`` at
-              calibration.py:822,
-              so the recorded ``LengthCurve.length_policy`` can embed an address
-              and differ between processes.
+
+        - A missing ``__qualname__`` falls back to ``repr`` at
+          calibration.py:838,
+          so the recorded ``LengthCurve.length_policy`` can embed an address
+          and differ between processes.
     """
     if callable(policy):
         name = getattr(policy, "__qualname__", None) or repr(policy)

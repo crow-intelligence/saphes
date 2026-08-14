@@ -75,19 +75,21 @@ def _sample(
 
     Contract:
         Preconditions:
-            - Every element of ``pairs`` must be a two-element tuple of strings;
-              anything else raises ``ValueError`` or ``TypeError`` from the
-              unpacking at
-              __init__.py:97.
+
+        - Every element of ``pairs`` must be a two-element tuple of strings;
+          anything else raises ``ValueError`` or ``TypeError`` from the
+          unpacking at
+          __init__.py:99.
 
         Guarantees:
-            - Both streams are NFC-normalised, so ``len()`` on either counts
-              glyphs rather than code points. This is what lets the bundled
-              Greek sample be measured without a length policy.
-            - Normalisation is idempotent, so re-wrapping a Sample is safe.
-            - Nothing checks that ``text`` and ``pairs`` describe the same
-              passage. ``tests/test_datasets.py`` does, by tokenising ``text``
-              and comparing the count.
+
+        - Both streams are NFC-normalised, so ``len()`` on either counts
+          glyphs rather than code points. This is what lets the bundled
+          Greek sample be measured without a length policy.
+        - Normalisation is idempotent, so re-wrapping a Sample is safe.
+        - Nothing checks that ``text`` and ``pairs`` describe the same
+          passage. ``tests/test_datasets.py`` does, by tokenising ``text``
+          and comparing the count.
     """
     return Sample(
         language=language,
