@@ -71,7 +71,24 @@ class Sample:
 def _sample(
     language: str, text: str, pairs: tuple[tuple[str, str], ...], source: str
 ) -> Sample:
-    """Build a Sample with both streams NFC-normalised."""
+    """Build a Sample with both streams NFC-normalised.
+
+    Contract:
+        Preconditions:
+            - Every element of ``pairs`` must be a two-element tuple of strings;
+              anything else raises ``ValueError`` or ``TypeError`` from the
+              unpacking at
+              __init__.py:97.
+
+        Guarantees:
+            - Both streams are NFC-normalised, so ``len()`` on either counts
+              glyphs rather than code points. This is what lets the bundled
+              Greek sample be measured without a length policy.
+            - Normalisation is idempotent, so re-wrapping a Sample is safe.
+            - Nothing checks that ``text`` and ``pairs`` describe the same
+              passage. ``tests/test_datasets.py`` does, by tokenising ``text``
+              and comparing the count.
+    """
     return Sample(
         language=language,
         text=unicodedata.normalize("NFC", text),

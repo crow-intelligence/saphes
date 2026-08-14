@@ -104,7 +104,23 @@ uv sync --all-extras
 - Result objects are `@dataclass(frozen=True, slots=True)` with a Google `Attributes:`
   block per field and a `to_dict()` carrying a doctest. Never NamedTuple.
 - Docstring sections in order: summary, prose, `Args:`, `Returns:`, `Raises:`, `Contract:`,
-  `Examples:`. `Contract:` lists the invariants the property tests must cover.
+  `Examples:`. `Contract:` has up to three subsections, in this order — omit any that is
+  empty, never pad:
+  - `Preconditions:` — what the function demands of its caller beyond the type signature,
+    and what happens when that is violated. Say whether the failure is an explicit guard or
+    an incidental error from downstream code, and **say so loudly when there is no failure
+    at all** — a silently wrong answer is the thing worth documenting.
+  - `Guarantees:` — the postconditions the property tests must cover. This is what
+    `Contract:` used to hold on its own.
+  - `Silences:` — errors caught, defaults substituted, or heuristics applied without
+    telling the caller.
+- **`Raises:` stays at the top level**, not nested inside `Contract:` — ruff's `D214` rejects
+  the nesting, and mkdocstrings only renders the top-level one. Do not duplicate it.
+- Line references are written `module.py:NNN`. They are checked:
+  `tests/test_docstring_refs.py` asserts every one lands on real code rather than on blank
+  space, a comment, or docstring prose. They rot easily — adding a docstring shifts the code
+  it points at — so run the suite after editing any docstring, and expect that test to be
+  the one that fails.
 - Errors bind the message first: `msg = "..."` then `raise ValueError(msg)`.
 - Hypothesis strategies live in `tests/strategies.py`, constrained to **named alphabets** —
   arbitrary `st.text()` generates lone combining marks under which "word length" is

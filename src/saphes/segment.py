@@ -69,8 +69,15 @@ def words(text: str) -> list[str]:
         The ordered list of word tokens.
 
     Contract:
-        - The returned list preserves source order.
-        - No returned token is empty or contains whitespace.
+        Preconditions:
+            - ``text`` must be a ``str``. Passing ``bytes`` raises ``TypeError``
+              (implicit, from ``re.findall`` on a str pattern at
+              segment.py:97). Passing ``None`` raises ``TypeError`` the same
+              way.
+
+        Guarantees:
+            - The returned list preserves source order.
+            - No returned token is empty or contains whitespace.
 
     Examples:
         >>> words("It's a good-humoured day.")
@@ -108,8 +115,18 @@ def sentences(text: str, *, punkt: bool = False) -> list[str]:
         ImportError: If ``punkt=True`` and NLTK is not installed.
 
     Contract:
-        - The returned list preserves source order.
-        - Every returned sentence is non-empty and equal to its own ``.strip()``.
+        Preconditions:
+            - ``text`` must be a ``str``, as for ``words()``.
+            - With ``punkt=True``, NLTK must be installed *and* the ``punkt_tab``
+              model must be fetchable — see ``_punkt_sentences`` for what
+              happens when the download fails.
+
+        Guarantees:
+            - The returned list preserves source order.
+            - Every returned sentence is non-empty and equal to its own
+              ``.strip()``.
+            - With the default splitter, no network access and no filesystem
+              access occurs. That is not true of ``punkt=True``.
 
     Examples:
         >>> sentences("Mr. Bennet replied that he had not. He said no more.")
@@ -128,7 +145,30 @@ def sentences(text: str, *, punkt: bool = False) -> list[str]:
 
 
 def _regex_sentences(text: str) -> list[str]:
-    """Split into sentences with the offline, abbreviation-aware regex splitter."""
+    """Split into sentences with the offline, abbreviation-aware regex splitter.
+
+    Contract:
+        Preconditions:
+            - ``text`` must be a ``str`` (implicit, from ``re`` at
+              segment.py:174).
+
+        Guarantees:
+            - Total, offline and side-effect free for any string. Every
+              terminator is either accepted as a boundary or skipped; nothing
+              raises.
+            - Text with no terminator at all returns a single sentence — the
+              stripped whole — via the tail branch at segment.py:194.
+
+        Silences:
+            - Three classes of candidate boundary are skipped without record:
+              an abbreviation from ``_ABBREVIATIONS`` (segment.py:179), a
+              single capital letter read as an initial (segment.py:182), and a
+              terminator followed by a lowercase letter, read as dialogue
+              attribution (segment.py:188). Each is a heuristic that can be
+              wrong — "No." ending a sentence is merged into the next one — and
+              the caller gets no signal that a split was suppressed. This is why
+              ``LixResult`` records which splitter produced *B*.
+    """
     result: list[str] = []
     start = 0
     for match in _SENTENCE_END_RE.finditer(text):
@@ -158,7 +198,36 @@ def _regex_sentences(text: str) -> list[str]:
 
 
 def _punkt_sentences(text: str) -> list[str]:
-    """Split into sentences with NLTK Punkt, fetching the model if needed."""
+    """Split into sentences with NLTK Punkt, fetching the model if needed.
+
+    Raises:
+        ImportError: If NLTK is not installed (explicit guard).
+        LookupError: If the model is absent and the download did not produce
+            it. Propagated from ``sent_tokenize``, *not* from the download
+            itself — see Silences.
+
+    Contract:
+        Preconditions:
+            - NLTK must be importable. If not, raises ``ImportError`` with an
+              install hint (explicit guard).
+            - The ``punkt_tab`` model must be present on disk, or downloadable.
+
+        Silences:
+            - ``LookupError`` from ``nltk.data.find`` (segment.py:242) is caught
+              deliberately: it is the signal to fetch the model.
+            - **A failed download is silent.** ``nltk.download`` returns a bool
+              indicating success; the return value is discarded and
+              ``quiet=True`` suppresses its output (segment.py:244). If the
+              network is unreachable, the proxy blocks it, or the disk is full,
+              this function continues as though the model were present and the
+              caller instead sees a ``LookupError`` raised from
+              ``sent_tokenize`` — an error about a missing resource rather than
+              about a failed download. The two cases are indistinguishable from
+              the traceback.
+            - The download writes to NLTK's data directory (``~/nltk_data`` or
+              ``NLTK_DATA``). Permission and disk errors there surface only
+              through the same path.
+    """
     try:
         import nltk
     except ImportError as exc:  # pragma: no cover - exercised only without nltk

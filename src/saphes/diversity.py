@@ -71,8 +71,19 @@ def ttr_from_counts(*, types: int, tokens: int) -> float:
             ``tokens``.
 
     Contract:
-        - The result lies in ``(0, 1]``.
-        - ``types == tokens`` (all distinct) gives exactly ``1.0``.
+        Preconditions:
+            - Both arguments must be ``int``. Every constraint is checked
+              explicitly and raises ``ValueError`` naming the count, so there is
+              no silent failure mode for integer input.
+            - Floats are not rejected — the comparisons and the division accept
+              them — so a float ``tokens`` returns a ratio rather than raising.
+              Only the callers guarantee integers.
+
+        Guarantees:
+            - The result lies in ``(0, 1]``.
+            - ``types == tokens`` (all distinct) gives exactly ``1.0``.
+            - Total for every input that passes the guards; no division by zero
+              is reachable, since ``tokens`` is known positive by then.
 
     Examples:
         >>> ttr_from_counts(types=2, tokens=4)
@@ -119,10 +130,32 @@ def mattr(tokens: list[str], window: int = 100) -> float:
         A diversity score in ``[0, 1]`` (``0.0`` for an empty sequence).
 
     Contract:
-        - Empty input returns ``0.0`` rather than raising — the historical
-          behaviour this replaces. :func:`lexical_diversity` raises instead.
-        - Sequences shorter than ``window`` degrade to the plain TTR of the whole
-          sequence.
+        Preconditions:
+            - ``tokens`` must be **sized and indexable**. The annotation says
+              ``list[str]``, but any sequence works — a tuple is fine. A
+              generator or other one-shot iterator raises ``TypeError``
+              (implicit, from ``len(tokens)`` at diversity.py:170).
+            - ``tokens`` must be **ordered and meaningfully so**. Passing a
+              ``set`` succeeds and returns a number, but the windows are drawn
+              over arbitrary iteration order, so the result is meaningless. No
+              error is raised.
+            - Elements must be hashable (implicit, from ``Counter`` at
+              diversity.py:176). They need not be strings; anything hashable is
+              counted by identity of value.
+            - ``window`` must be **positive**. This function does not check it,
+              unlike ``lexical_diversity()``, which guards it at
+              diversity.py:376. Passing ``window=0`` raises ``ZeroDivisionError``
+              (implicit, from the final division at diversity.py:194); a
+              negative ``window`` raises ``IndexError`` (implicit, from
+              ``tokens[i - window]`` at diversity.py:185). Neither message
+              mentions ``window``.
+
+        Guarantees:
+            - Empty input returns ``0.0`` rather than raising — the historical
+              behaviour this replaces. :func:`lexical_diversity` raises instead.
+            - Sequences shorter than ``window`` degrade to the plain TTR of the
+              whole sequence.
+            - The result lies in ``[0, 1]`` for any positive ``window``.
 
     Examples:
         >>> mattr(["a", "b", "a", "b"], window=2)   # every 2-window is all-distinct
@@ -267,10 +300,38 @@ def lexical_diversity(
             positive, or if the token stream is empty.
 
     Contract:
-        - The TTR lies in ``(0, 1]``.
-        - An all-distinct token list gives exactly ``1.0``; one token repeated
-          *n* times gives ``1/n``.
-        - Empty input raises rather than dividing by zero.
+        Preconditions:
+            - ``lemmas`` must be a ``str`` or a sequence of hashable tokens.
+              Hashability is required by the ``set`` at
+              diversity.py:403.
+            - **If ``window`` is given, the sequence must be ordered.** A
+              ``set`` is accepted and returns a plausible number, but MATTR is
+              then computed over arbitrary iteration order and is meaningless.
+              Nothing raises. A ``set`` also makes the TTR trivially ``1.0``,
+              which is at least visibly odd; the MATTR is not.
+            - Tokens need not be strings — ``[1, 2, 1]`` returns 0.667 — **but
+              only while ``case_fold`` is False.** With ``case_fold=True`` the
+              same input raises ``AttributeError: 'int' object has no attribute
+              'casefold'`` (implicit, at
+              diversity.py:397), so
+              an unrelated flag decides whether non-string tokens work.
+            - Tokens must be **lemmas** unless ``unit="surface"`` is declared.
+              Nothing checks this and nothing can: surface forms produce a
+              higher, entirely plausible TTR. The required ``unit`` and the
+              refusal of raw strings are the only guards.
+            - A generator is accepted; it is materialised once at
+              diversity.py:393.
+
+        Guarantees:
+            - The TTR lies in ``(0, 1]``.
+            - An all-distinct token list gives exactly ``1.0``; one token
+              repeated *n* times gives ``1/n``.
+            - Empty input raises rather than dividing by zero — including input
+              that becomes empty only after a raw string is segmented.
+            - ``unit``, ``case_folded``, ``window`` and ``pos_filter`` are all
+              recorded on the result, so the number can be interpreted later.
+            - ``pos_filter`` is a label only. It never filters anything; saphes
+              does not tag.
 
     Examples:
         >>> lexical_diversity(["ház", "kutya", "ház"], unit="lemma")
