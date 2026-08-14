@@ -21,6 +21,8 @@ theme:
   # at 16px, and the wordmark is unreadable there anyway.
   favicon: assets/saphes_mark.svg
   features:
+    # The four Diátaxis modes are the top-level structure, so they get tabs.
+    - navigation.tabs
     - navigation.sections
     - content.code.copy
 
@@ -48,20 +50,41 @@ markdown_extensions:
       base_path: ["."]
       check_paths: true
 
+# Organised by Diátaxis (https://diataxis.fr/): learning, tasks, information and
+# understanding are four different needs, and a page that mixes them serves none.
 nav:
-  - Getting Started:
-      - index.md
-      - quickstart.md
-  - Tutorials:
-      - tutorials/two_contracts.md
-      - tutorials/threshold_saturation.md
-  - Examples:
-      - examples/lix_quickstart.md
-      - examples/two_contracts.md
-  - Troubleshooting: troubleshooting.md
-  - API Reference:
-      - api/readability.md
-      - api/diversity.md
-      - api/calibration.md
-      - api/segment.md
-      - api/datasets.md
+  - Home: index.md
+  - Tutorial:
+      - tutorial/first-measurement.md
+  - How-to guides:
+      - Getting set up:
+          - how-to/install.md
+      - Measuring:
+          - how-to/supply-a-sentence-count.md
+          - how-to/compare-different-lengths.md
+          - how-to/plug-in-a-sentence-splitter.md
+          - how-to/count-letters-not-characters.md
+      - Thresholds:
+          - how-to/use-a-calibrated-threshold.md
+          - how-to/calibrate-a-new-language.md
+          - how-to/reproduce-the-calibration.md
+      - When something looks wrong:
+          - how-to/diagnose-a-surprising-result.md
+          - how-to/match-another-implementation.md
+  - Reference:
+      - reference/index.md
+      - API:
+          - reference/readability.md
+          - reference/diversity.md
+          - reference/calibration.md
+          - reference/segment.md
+          - reference/datasets.md
+      - Data:
+          - reference/lix-bands.md
+          - reference/calibration-data.md
+          - reference/glossary.md
+  - Explanation:
+      - explanation/two-token-streams.md
+      - explanation/why-the-threshold-moves.md
+      - explanation/why-implementations-disagree.md
+      - explanation/what-gets-recorded.md

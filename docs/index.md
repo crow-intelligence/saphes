@@ -7,52 +7,70 @@
 Readability and lexical diversity — two metrics, done carefully, with the parameters other
 implementations hardcode.
 
-*saphes* — σαφής, "clear, plain, distinct". Aristotle makes clarity the chief virtue of
-λέξις (style); the other classical axis is ποικιλία, variety. The two metrics here are
-exactly those axes: **LIX measures clarity, TTR measures variety.**
+*saphes* — σαφής, "clear, plain, distinct". Aristotle makes clarity the chief virtue of λέξις
+(style); the other classical axis is ποικιλία, variety. The two metrics here are exactly
+those axes: **LIX measures clarity, TTR measures variety.**
 
-## Why this exists
+```pycon
+>>> from saphes import lix
+>>> result = lix("The cat sat on it. Complicated sentences generally frighten us.")
+>>> result.score
+45.0
+>>> result.words, result.sentences, result.long_words
+(10, 2, 4)
 
-`textstat`, `textdescriptives`, `lexicalrichness` and `taaled` already cover this ground.
-Two reasons to still build it:
+```
 
-1. **The LIX long-word threshold is hardcoded at 6 everywhere.** That 6 comes from
-   Björnsson's Swedish original. It is wrong for agglutinative and heavily inflected
-   languages, where nearly every token counts as "long" and the index saturates into a flat
-   line. Measured over the Hungarian Webcorpus — 493 million running tokens — **38.9% of
-   tokens are longer than 6**, against a Germanic norm nearer 20–25%. Parameterising the
-   threshold is the whole point.
-2. **Implementations disagree.** They count words, sentences and long words differently, so
-   they rank the same texts differently. Every function here returns the counts and the
-   parameters alongside the score. See [Troubleshooting](troubleshooting.md) for a worked
-   comparison against `textstat`.
+## Why it exists
 
-## Core concepts
+`textstat`, `textdescriptives`, `lexicalrichness` and `taaled` already cover this ground. Two
+reasons to still build it:
 
-**The two metrics require opposite token streams.** This is the one thing to get right.
+**The LIX long-word threshold is hardcoded at 6 everywhere.** That 6 comes from Björnsson's
+Swedish original. Measured over the full Hungarian Webcorpus, **44.5% of running tokens are
+"long" at threshold 6**, against **25.7%** in Swedish — so the index saturates and stops
+telling texts apart. On real Hungarian prose that reads as LIX 60.4, "very difficult"; at the
+calibrated threshold it reads 43.4.
 
-| Metric | Required input | Why |
+**Implementations disagree**, because they count words, sentences and long words differently.
+Every function here returns the counts and the parameters alongside the score, so a number
+can be checked rather than trusted.
+
+## Start here
+
+<div class="grid cards" markdown>
+
+- **[Tutorial](tutorial/first-measurement.md)**
+
+    New to saphes? Measure your first text, in about ten minutes, with nothing to download.
+
+- **[How-to guides](how-to/install.md)**
+
+    You know what you want. Supply a sentence count, compare texts of different lengths,
+    calibrate a threshold, diagnose a surprise.
+
+- **[Reference](reference/index.md)**
+
+    The machinery: every function, its contract, its failure modes, and the calibration data.
+
+- **[Explanation](explanation/two-token-streams.md)**
+
+    Why the two metrics need opposite input, why the threshold has to move, and why
+    implementations disagree.
+
+</div>
+
+## The one thing to get right
+
+The two metrics require **opposite** token streams.
+
+| Metric | Wants | Because |
 |---|---|---|
-| `lexical_diversity` | **lemmas** | Surface variation is *noise* — it measures morphology, not vocabulary. |
+| `lexical_diversity` | **lemmas** | Surface variation is noise — it measures morphology, not vocabulary. |
 | `lix` | **surface forms** | Word length *is* the signal, and lemmatising erases it. |
 
-Feed the same list to both and exactly one of them is silently wrong. See
-[The two contracts](tutorials/two_contracts.md).
-
-**Counts, not just scores.** A bare float is unauditable. Every result carries *A*, *B*, *C*
-(or types and tokens), every parameter used, and the saphes version.
-
-**Nothing is decided silently.** `unit` is required on `lexical_diversity`. A raw string is
-refused where it could only produce the wrong kind of token. `LixResult.band` returns `None`
-once the threshold moves off the value Björnsson's bands were calibrated at.
-
-## Quick links
-
-- [Quickstart](quickstart.md)
-- [The two contracts](tutorials/two_contracts.md) — the asymmetry, and the guards against it
-- [Threshold and saturation](tutorials/threshold_saturation.md) — why 6 is the wrong default
-- [Troubleshooting](troubleshooting.md) — why your score differs from `textstat`
-- [API reference](api/readability.md)
+Feed the same list to both and exactly one is silently wrong — no error, no NaN, just a
+plausible number. See [The two token streams](explanation/two-token-streams.md).
 
 ---
 

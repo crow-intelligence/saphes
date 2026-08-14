@@ -116,6 +116,10 @@ uv sync --all-extras
     telling the caller.
 - **`Raises:` stays at the top level**, not nested inside `Contract:` — ruff's `D214` rejects
   the nesting, and mkdocstrings only renders the top-level one. Do not duplicate it.
+- The `Contract:` body sits at the **same indent as its subsection headers**, with a blank
+  line after each header. Any deeper and Markdown renders the bullets as a code block on the
+  API pages; any shallower and they merge into one paragraph. Verified by building and
+  grepping the HTML, not by eye.
 - Line references are written `module.py:NNN`. They are checked:
   `tests/test_docstring_refs.py` asserts every one lands on real code rather than on blank
   space, a comment, or docstring prose. They rot easily — adding a docstring shifts the code
@@ -127,6 +131,23 @@ uv sync --all-extras
   genuinely ambiguous.
 - `@settings(...)` goes above `@given(...)`.
 - Every public function needs an `Examples:` block; doctests run in CI by default.
+
+## Documentation
+
+`docs/` follows [Diátaxis](https://diataxis.fr/): `tutorial/` teaches a newcomer,
+`how-to/` gives recipes to someone who already knows what they want, `reference/` describes
+the machinery, `explanation/` argues. **Do not mix modes in one page** — that is the failure
+the structure exists to prevent. A how-to with an argument in it, or an explanation with
+numbered steps, belongs in two pages.
+
+`testpaths` includes `docs`, and `--doctest-glob=*.md` executes every `>>>` in every page.
+Write examples as `pycon` blocks with real, exact output — no ellipsis. Prose code that is
+illustrative rather than runnable (needs spaCy, a corpus, a network) goes in a plain
+`python` block, which is not collected.
+
+The docstring is canonical for anything about a single function's behaviour. Prose links to
+the reference rather than restating it; the audit that prompted this structure found some
+material in five places at once.
 
 ## Downstream consumers
 

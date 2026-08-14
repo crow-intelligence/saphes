@@ -27,10 +27,10 @@ opposite of what :mod:`saphes.diversity` requires — see that module, and never
 feed one token stream to both.
 
 The default 6 comes from Björnsson's Swedish original and is wrong for the
-languages this package was built for: at threshold 6 roughly 39% of running
-Hungarian tokens count as "long" against a Germanic norm nearer 20-25%, so the
-index saturates and stops discriminating. Raise the threshold and it works again.
-That is the whole point of the parameter.
+languages this package was built for: at threshold 6, 44.5% of running Hungarian
+tokens count as "long" against 25.7% in Swedish, so the index saturates and
+stops discriminating. Raise the threshold and it works again. That is the whole
+point of the parameter.
 """
 
 from __future__ import annotations
@@ -106,25 +106,27 @@ def word_length(word: str, *, policy: LengthPolicy | LengthFn = "nfc") -> int:
 
     Contract:
         Preconditions:
-            - ``word`` must be a ``str`` for the three built-in policies.
-              ``bytes`` or ``None`` raises ``TypeError`` (implicit, from
-              ``unicodedata.normalize`` at
-              readability.py:160).
-            - A callable ``policy`` **must return an int**, and this is not
-              checked — its value is returned unaltered (
-              readability.py:151). A callable returning a ``str``
-              succeeds here and then fails in ``lix`` at the long-word
-              comparison with ``TypeError: '>' not supported between instances
-              of 'str' and 'int'``, which names neither the policy nor the word.
-            - A callable ``policy`` is trusted entirely: whatever it raises
-              propagates unchanged.
+
+        - ``word`` must be a ``str`` for the three built-in policies.
+          ``bytes`` or ``None`` raises ``TypeError`` (implicit, from
+          ``unicodedata.normalize`` at
+          readability.py:162).
+        - A callable ``policy`` **must return an int**, and this is not
+          checked — its value is returned unaltered (
+          readability.py:153). A callable returning a ``str``
+          succeeds here and then fails in ``lix`` at the long-word
+          comparison with ``TypeError: '>' not supported between instances
+          of 'str' and 'int'``, which names neither the policy nor the word.
+        - A callable ``policy`` is trusted entirely: whatever it raises
+          propagates unchanged.
 
         Guarantees:
-            - ``word_length("") == 0`` under every built-in policy.
-            - ``"nfc"`` is idempotent on already-composed text, so it is free
-              for callers who already normalise.
-            - The built-in policies are pure and allocate no more than one
-              normalised copy of the word.
+
+        - ``word_length("") == 0`` under every built-in policy.
+        - ``"nfc"`` is idempotent on already-composed text, so it is free
+          for callers who already normalise.
+        - The built-in policies are pure and allocate no more than one
+          normalised copy of the word.
 
     Examples:
         >>> word_length("housing")
@@ -184,20 +186,22 @@ def lix_from_counts(*, words: int, sentences: int, long_words: int) -> float:
 
     Contract:
         Preconditions:
-            - All three arguments must be ``int``. Every constraint is checked
-              explicitly and raises ``ValueError`` with a message naming the
-              count, so this function has no silent failure mode for integer
-              input.
-            - Floats are *not* rejected: the comparisons and the arithmetic all
-              accept them, so ``words=10.5`` returns a score rather than
-              raising. Only the callers guarantee integers.
+
+        - All three arguments must be ``int``. Every constraint is checked
+          explicitly and raises ``ValueError`` with a message naming the
+          count, so this function has no silent failure mode for integer
+          input.
+        - Floats are *not* rejected: the comparisons and the arithmetic all
+          accept them, so ``words=10.5`` returns a score rather than
+          raising. Only the callers guarantee integers.
 
         Guarantees:
-            - The result is never negative.
-            - ``long_words == words`` makes the second term exactly ``100.0``.
-            - Total for every input that passes the guards — no division by
-              zero is reachable, since ``words`` and ``sentences`` are known
-              positive by then.
+
+        - The result is never negative.
+        - ``long_words == words`` makes the second term exactly ``100.0``.
+        - Total for every input that passes the guards — no division by
+          zero is reachable, since ``words`` and ``sentences`` are known
+          positive by then.
 
     Examples:
         >>> lix_from_counts(words=10, sentences=2, long_words=4)
@@ -236,26 +240,28 @@ def interpret_lix(score: float) -> LixBand:
 
     Contract:
         Preconditions:
-            - ``score`` must be a real, non-NaN number. **NaN is not rejected
-              and does not raise**: every ``score < upper`` comparison is False
-              for NaN, so the loop at
-              readability.py:268 falls through and the
-              function returns ``"very difficult"``. A score produced by
-              ``lix_from_counts`` can never be NaN, but a hand-built or
-              deserialised one can.
-            - Negative scores are likewise accepted and band as ``"very easy"``.
-              LIX is non-negative by construction, so a negative input means
-              something upstream is wrong, and this function will not say so.
+
+        - ``score`` must be a real, non-NaN number. **NaN is not rejected
+          and does not raise**: every ``score < upper`` comparison is False
+          for NaN, so the loop at
+          readability.py:274 falls through and the
+          function returns ``"very difficult"``. A score produced by
+          ``lix_from_counts`` can never be NaN, but a hand-built or
+          deserialised one can.
+        - Negative scores are likewise accepted and band as ``"very easy"``.
+          LIX is non-negative by construction, so a negative input means
+          something upstream is wrong, and this function will not say so.
 
         Guarantees:
-            - Total for every float: the final entry of ``LIX_BANDS`` has an
-              infinite bound, so some label is always returned.
-            - Calibrated for Swedish/Germanic prose at ``long_word_threshold=6``
-              only. At any other threshold the score is no longer on this scale;
-              ``LixResult.band`` returns ``None`` there rather than mislabel it.
-            - Reads the module-level ``LIX_BANDS``, which is public and
-              rebindable. A caller who replaces it changes this function's
-              output process-wide.
+
+        - Total for every float: the final entry of ``LIX_BANDS`` has an
+          infinite bound, so some label is always returned.
+        - Calibrated for Swedish/Germanic prose at ``long_word_threshold=6``
+          only. At any other threshold the score is no longer on this scale;
+          ``LixResult.band`` returns ``None`` there rather than mislabel it.
+        - Reads the module-level ``LIX_BANDS``, which is public and
+          rebindable. A caller who replaces it changes this function's
+          output process-wide.
 
     Examples:
         >>> interpret_lix(45.0)
@@ -404,19 +410,21 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
 
     Contract:
         Guarantees:
-            - Total: returns a string for any input, callable or not.
+
+        - Total: returns a string for any input, callable or not.
 
         Silences:
-            - A missing ``__qualname__`` is masked by the ``getattr`` default at
-              readability.py:422,
-              falling back to ``repr``. Callables without a qualname —
-              ``functools.partial``, a class instance with ``__call__``, a
-              builtin — therefore record something like
-              ``custom:functools.partial(<built-in function len>)`` instead of a
-              name. The label still identifies the policy, but it is not stable
-              across processes, since a default ``repr`` embeds an address. That
-              matters here because the label is provenance: it is written into
-              ``LixResult.length_policy`` and serialised by ``to_dict``.
+
+        - A missing ``__qualname__`` is masked by the ``getattr`` default at
+          readability.py:430,
+          falling back to ``repr``. Callables without a qualname —
+          ``functools.partial``, a class instance with ``__call__``, a
+          builtin — therefore record something like
+          ``custom:functools.partial(<built-in function len>)`` instead of a
+          name. The label still identifies the policy, but it is not stable
+          across processes, since a default ``repr`` embeds an address. That
+          matters here because the label is provenance: it is written into
+          ``LixResult.length_policy`` and serialised by ``to_dict``.
     """
     if callable(policy):
         name = getattr(policy, "__qualname__", None) or repr(policy)
@@ -435,38 +443,41 @@ def _count_sentences(
 
     Contract:
         Preconditions:
-            - ``is_raw`` must be ``True`` exactly when ``text`` is a ``str``.
-              The caller computes both, and this function trusts the pairing:
-              the ``assert`` at
-              readability.py:486
-              documents it rather than enforcing it, since ``python -O`` strips
-              asserts. If they ever disagree, ``splitter(text)`` is handed a
-              non-string.
-            - ``sentences`` must not be a ``bool``. It is rejected explicitly,
-              because ``bool`` subclasses ``int`` and ``sentences=True`` would
-              otherwise be read as *B*=1 — a plausible, silently wrong answer.
-            - ``sentences`` must not be a bare ``str``. Also rejected
-              explicitly: a string is a sequence of characters, so it would
-              otherwise count as one "sentence" per character.
-            - A ``sentences`` sequence must be re-iterable. A generator is
-              consumed by the comprehension at
-              readability.py:501
-              and its elements must be strings, or ``.strip()`` raises
-              ``AttributeError``.
+
+        - ``is_raw`` must be ``True`` exactly when ``text`` is a ``str``.
+          The caller computes both, and this function trusts the pairing:
+          the ``assert`` at
+          readability.py:497
+          documents it rather than enforcing it, since ``python -O`` strips
+          asserts. If they ever disagree, ``splitter(text)`` is handed a
+          non-string.
+        - ``sentences`` must not be a ``bool``. It is rejected explicitly,
+          because ``bool`` subclasses ``int`` and ``sentences=True`` would
+          otherwise be read as *B*=1 — a plausible, silently wrong answer.
+        - ``sentences`` must not be a bare ``str``. Also rejected
+          explicitly: a string is a sequence of characters, so it would
+          otherwise count as one "sentence" per character.
+        - A ``sentences`` sequence must be re-iterable. A generator is
+          consumed by the comprehension at
+          readability.py:512
+          and its elements must be strings, or ``.strip()`` raises
+          ``AttributeError``.
 
         Guarantees:
-            - Blank and whitespace-only entries are dropped from a segmented or
-              pre-segmented sequence before counting.
-            - An explicit integer is returned **unvalidated** — zero and
-              negatives pass through here and are caught downstream by
-              ``lix_from_counts``, which raises ``ValueError``.
+
+        - Blank and whitespace-only entries are dropped from a segmented or
+          pre-segmented sequence before counting.
+        - An explicit integer is returned **unvalidated** — zero and
+          negatives pass through here and are caught downstream by
+          ``lix_from_counts``, which raises ``ValueError``.
 
         Silences:
-            - A missing ``__qualname__`` on the splitter falls back to ``repr``
-              at
-              readability.py:488
-              — see ``_policy_label`` for why that weakens the provenance
-              record.
+
+        - A missing ``__qualname__`` on the splitter falls back to ``repr``
+          at
+          readability.py:499
+          — see ``_policy_label`` for why that weakens the provenance
+          record.
     """
     # bool is a subclass of int, so `sentences=True` would silently become B=1.
     if isinstance(sentences, bool):
@@ -541,37 +552,39 @@ def lix(
 
     Contract:
         Preconditions:
-            - ``words`` must be a ``str`` or a **re-iterable** sequence of
-              ``str``. A generator is materialised once at
-              readability.py:622 so it works, but every element
-              must be a string or ``.strip()`` raises ``AttributeError``
-              (implicit, at
-              readability.py:625).
-            - Order is irrelevant here — unlike ``lexical_diversity`` with a
-              window, a set of tokens gives the same LIX as a list — but the
-              *count* is not, so passing a set silently deduplicates and
-              undercounts *A*.
-            - Tokens must be **surface forms**, not lemmas. Nothing checks this
-              and nothing can: lemmas produce a lower, entirely plausible score.
-              The parameter is named ``words`` rather than ``lemmas`` so that
-              crossing the two metrics is a ``TypeError`` at the call site.
-            - ``length_policy``, if callable, must return an int — see
-              ``word_length``. A bad return value fails at the comparison at
-              readability.py:635,
-              not at the policy.
-            - ``sentencer``, if given, must accept one string and return an
-              iterable of strings; it is called only when ``sentences`` is
-              ``None`` and whatever it raises propagates.
+
+        - ``words`` must be a ``str`` or a **re-iterable** sequence of
+          ``str``. A generator is materialised once at
+          readability.py:635 so it works, but every element
+          must be a string or ``.strip()`` raises ``AttributeError``
+          (implicit, at
+          readability.py:638).
+        - Order is irrelevant here — unlike ``lexical_diversity`` with a
+          window, a set of tokens gives the same LIX as a list — but the
+          *count* is not, so passing a set silently deduplicates and
+          undercounts *A*.
+        - Tokens must be **surface forms**, not lemmas. Nothing checks this
+          and nothing can: lemmas produce a lower, entirely plausible score.
+          The parameter is named ``words`` rather than ``lemmas`` so that
+          crossing the two metrics is a ``TypeError`` at the call site.
+        - ``length_policy``, if callable, must return an int — see
+          ``word_length``. A bad return value fails at the comparison at
+          readability.py:648,
+          not at the policy.
+        - ``sentencer``, if given, must accept one string and return an
+          iterable of strings; it is called only when ``sentences`` is
+          ``None`` and whatever it raises propagates.
 
         Guarantees:
-            - Empty and whitespace-only tokens are dropped before counting and
-              the number is recorded as ``dropped_empty``.
-            - ``long_word_threshold=0`` makes every word long, so the second
-              term is exactly ``100.0``.
-            - Raising the threshold never raises the score.
-            - Empty input raises rather than dividing by zero.
-            - ``unit`` on the result is always ``"surface"``, and every
-              parameter that affected the number is recorded on the result.
+
+        - Empty and whitespace-only tokens are dropped before counting and
+          the number is recorded as ``dropped_empty``.
+        - ``long_word_threshold=0`` makes every word long, so the second
+          term is exactly ``100.0``.
+        - Raising the threshold never raises the score.
+        - Empty input raises rather than dividing by zero.
+        - ``unit`` on the result is always ``"surface"``, and every
+          parameter that affected the number is recorded on the result.
 
     Examples:
         The hand-computed example from the module docstring:
@@ -680,16 +693,18 @@ def rix(
 
     Contract:
         Preconditions:
-            - Identical to ``lix``: this is a thin wrapper that builds a full
-              ``LixResult`` and returns one property of it. Every precondition
-              and every exception documented there applies here unchanged.
+
+        - Identical to ``lix``: this is a thin wrapper that builds a full
+          ``LixResult`` and returns one property of it. Every precondition
+          and every exception documented there applies here unchanged.
 
         Guarantees:
-            - Never negative, and zero exactly when no word exceeds the
-              threshold.
-            - Discards the audit trail. ``lix(...).rix`` returns the same number
-              *and* keeps the counts and parameters that produced it; prefer it
-              unless you genuinely want a bare float.
+
+        - Never negative, and zero exactly when no word exceeds the
+          threshold.
+        - Discards the audit trail. ``lix(...).rix`` returns the same number
+          *and* keeps the counts and parameters that produced it; prefer it
+          unless you genuinely want a bare float.
 
     Examples:
         >>> rix("The cat sat on it. Complicated sentences generally frighten us.")

@@ -48,10 +48,10 @@ def show_sweep() -> None:
         )
     print()
     print("  Two paragraphs cannot settle what threshold a language needs — that is")
-    print("  a distributional question. Measured over the Hungarian Webcorpus (493M")
-    print("  running tokens, 4% stratum), 38.9% of tokens are longer than 6, against")
-    print("  a Germanic norm nearer 20-25%. Picking the threshold properly means")
-    print("  matching those shares across languages, not eyeballing a sample.")
+    print("  a distributional question. Measured over the Hungarian Webcorpus (555M")
+    print("  running tokens, 4% stratum), 44.5% of tokens are longer than 6, against")
+    print("  25.7% in Swedish. Picking the threshold properly means matching those")
+    print("  shares across languages, not eyeballing a sample.")
     print()
 
 
