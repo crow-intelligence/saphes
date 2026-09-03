@@ -1,7 +1,10 @@
 # Review guide — Hungarian iteration
 
-Everything on branch `hungarian-graphemes-and-stemming`, staged and **not committed**.
-63 files, +5,269 / −332.
+Everything on branch `hungarian-graphemes-and-stemming`, as six commits against `main`.
+64 files, +5,504 / −332.
+
+Each commit was verified green on its own — `make ci` and, where it touches `docs/`,
+`mkdocs build --strict` — so the branch bisects.
 
 This is the map. `CHANGES_SUMMARY.md` is the full account; this tells you what to look at, in
 what order, and what each decision costs to undo.
