@@ -78,6 +78,7 @@ nav:
           - reference/diversity.md
           - reference/calibration.md
           - reference/segment.md
+          - reference/hungarian.md
           - reference/datasets.md
       - Data:
           - reference/lix-bands.md

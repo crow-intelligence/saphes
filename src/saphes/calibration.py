@@ -44,7 +44,6 @@ __all__ = [
     "ThresholdMatch",
     "ThresholdRecommendation",
     "collapse_digraphs",
-    "hungarian_letter_count",
     "length_curve",
     "match_threshold",
     "recommended_threshold",
@@ -92,7 +91,7 @@ def collapse_digraphs(word: str, *, digraphs: tuple[str, ...] = HU_DIGRAPHS) -> 
 
         - ``word`` must be a ``str``; ``bytes`` raises ``TypeError``
           (implicit, from ``str.replace`` at
-          calibration.py:137).
+          calibration.py:151).
         - ``word`` must already be **lowercase**. Matching is
           case-sensitive, so ``"Ország"`` keeps its ``sz`` uncollapsed and
           returns the wrong length with no error. ``hungarian_letter_count``
@@ -107,6 +106,9 @@ def collapse_digraphs(word: str, *, digraphs: tuple[str, ...] = HU_DIGRAPHS) -> 
         - The result is never longer than the input.
         - Collapsing is applied longest-first, so ``dzs`` is one letter, not
           ``dz`` plus ``s``.
+        - Replacement **cascades**: each digraph is rewritten in place, so the
+          output of one replacement is input to the next. Two known failures
+          follow from that, both silent. See the examples.
         - Only the length of the result is meaningful. It is not a word and
           not a transliteration.
 
@@ -130,58 +132,24 @@ def collapse_digraphs(word: str, *, digraphs: tuple[str, ...] = HU_DIGRAPHS) -> 
         >>> len(collapse_digraphs("község"))
         5
 
-        That is why character counting stays the default, as in Björnsson's
-        original, and this is offered only as a sensitivity check.
+        The second failure is the cascade. Replacing ``sz`` with ``s`` after a
+        ``z`` manufactures a ``zs`` that was not in the input, and that is then
+        collapsed too. ``vízszint`` is ``víz`` + ``szint``, seven letters:
+
+        >>> collapse_digraphs("vízszint")
+        'vízint'
+        >>> len(collapse_digraphs("vízszint"))
+        6
+
+        Both failures are why this stays a sensitivity check.
+        :func:`saphes.hungarian.hungarian_letter_count` scans instead of
+        rewriting and knows a table of compound seams, so it gets both of these
+        right; it is the one to reach for when you want a letter count rather
+        than a robustness check on a character count.
     """
     for digraph in digraphs:
         word = word.replace(digraph, digraph[0])
     return word
-
-
-def hungarian_letter_count(word: str) -> int:
-    """Count Hungarian *letters* rather than characters.
-
-    A :data:`~saphes._types.LengthFn` suitable for passing to
-    ``lix(..., length_policy=...)``. Case-folds first, so it works on
-    capitalised input.
-
-    Args:
-        word: The word to measure.
-
-    Returns:
-        The number of Hungarian letters.
-
-    Contract:
-        Preconditions:
-
-        - ``word`` must be a ``str``.
-
-        Guarantees:
-
-        - Case-insensitive, unlike ``collapse_digraphs``, which it wraps.
-        - Never exceeds ``len(word)``.
-        - Correct only for Hungarian orthography, and **not always then**:
-          a digraph spanning a morpheme boundary is miscounted, as
-          ``collapse_digraphs`` documents with ``község``. This is a
-          sensitivity check, not ground truth.
-
-    Examples:
-        ``ország`` is six characters but five letters — ``sz`` is one letter:
-
-        >>> len("ország"), hungarian_letter_count("ország")
-        (6, 5)
-
-        Case-folding means capitalised input counts the same:
-
-        >>> hungarian_letter_count("Ország")
-        5
-
-        Words with no digraph are unaffected:
-
-        >>> hungarian_letter_count("ember")
-        5
-    """
-    return len(collapse_digraphs(word.casefold()))
 
 
 @dataclass(frozen=True, slots=True, repr=False)
@@ -413,7 +381,7 @@ def length_curve(
           of ``(word, count)`` tuples — a natural reading of the name —
           raises ``AttributeError: 'list' object has no attribute 'items'``
           (implicit, at
-          calibration.py:483).
+          calibration.py:475).
         - Keys must be strings, or ``word_length`` raises ``TypeError``.
         - Values must be **token frequencies in running text**, not ones.
           This is the study's likeliest silent failure and the signature is
@@ -425,7 +393,7 @@ def length_curve(
           ``LengthCurve.tokens`` a float despite its ``int`` annotation.
         - ``length_policy``, if callable, must return an int; a
           zero-returning policy silently drops the word at
-          calibration.py:490.
+          calibration.py:482.
 
         Guarantees:
 
@@ -442,7 +410,7 @@ def length_curve(
         Silences:
 
         - Words whose measured length is zero are skipped without record at
-          calibration.py:490 — they count toward neither ``tokens``
+          calibration.py:482 — they count toward neither ``tokens``
           nor ``types``. With the built-in policies only the empty string
           does this; with a custom policy it may not be.
 
@@ -570,7 +538,7 @@ def match_threshold(
           rather than rounded away.
         - ``runner_up`` is the second-ranked threshold, or the winner itself
           when the target curve has exactly one point (
-          calibration.py:608
+          calibration.py:576
           ). In that degenerate case ``is_boundary`` compares the winner
           with itself and reports ``True``.
         - The whole target curve travels on ``table``, so the choice stays
@@ -779,7 +747,7 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
         - Depends on ``saphes.datasets._lix_calibration``, which is
           **generated** by ``experiments/lix_calibration/scripts/run.py``
           and imported lazily at
-          calibration.py:789.
+          calibration.py:757.
           Nothing verifies that the shipped literal matches the committed
           JSON it was produced from, and nothing can — the corpora are not
           distributed. A hand-edit to that module would be invisible here;
@@ -830,7 +798,7 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
         Silences:
 
         - A missing ``__qualname__`` falls back to ``repr`` at
-          calibration.py:838,
+          calibration.py:807,
           so the recorded ``LengthCurve.length_policy`` can embed an address
           and differ between processes.
     """

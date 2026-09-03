@@ -1,0 +1,122 @@
+candidate	kind	token_freq	verdict	shipped_seam
+nyílászáró	compound	862	accept	nyílás-zár
+alvászavar	compound	596	accept	alvás-zavar
+alvászavarok	compound	570	accept	alvás-zavar
+vízsugár	compound	491	accept	víz-sug
+évadzáró	compound	389	accept	évad-zár
+kékeszöld	compound	343	accept	kékes-zöld
+világoszöld	compound	341	accept	világos-zöld
+fúvószenekari	compound	336	accept	fúvós-zene
+rövidzárlat	compound	329	accept	rövid-zár
+nehézsúlyú	compound	327	accept	nehéz-súly
+leszen	compound	306	reject	
+zöldzóna	compound	262	accept	zöld-zóna
+gázsprayt	compound	260	accept	gáz-spray
+rácsokat	compound	253	reject	
+fúvószenekara	compound	250	accept	fúvós-zene
+mozsár	compound	236	reject	
+sárgászöld	compound	226	accept	sárgás-zöld
+honvédzászlóalj	compound	193	accept	honvéd-zászló
+szürkészöld	compound	193	accept	szürkés-zöld
+alvászavarnak	compound	178	accept	alvás-zavar
+amcsik	compound	171	reject	
+házsor	compound	169	accept	ház-sor
+védzáradék	compound	163	accept	véd-záradék
+mozsárban	compound	158	reject	
+smaragdzöld	compound	155	accept	smaragd-zöld
+bizsereg	compound	148	reject	
+estélyen	compound	146	reject	
+vízsugarat	compound	141	accept	víz-sug
+táncsport	compound	140	accept	tánc-sport
+termékenyen	compound	137	reject	
+próbaidőszak	compound	134	reject	
+magyaroszágon	compound	133	reject	
+nagyin	compound	128	reject	
+beszédzavar	compound	124	accept	beszéd-zavar
+vényen	compound	122	reject	
+vízsugaras	compound	118	accept	víz-sug
+szívritmuszavar	compound	114	accept	ritmus-zavar
+rácsap	compound	113	reject	
+identitászavarban	compound	113	accept	identitás-zavar
+fúvószenekarok	compound	113	accept	fúvós-zene
+házsorok	compound	111	accept	ház-sor
+kiszombor	compound	107	accept	kis-zombor
+pénzsóvár	compound	105	accept	pénz-sóvár
+fúvószenei	compound	103	accept	fúvós-zene
+rácsokkal	compound	102	reject	
+haragoszöld	compound	102	accept	haragos-zöld
+idényen	compound	101	reject	
+milosevicset	compound	99	reject	
+milliószám	compound	99	reject	
+látászavar	compound	93	accept	látás-zavar
+rácsára	compound	92	reject	
+magatartászavarok	compound	92	accept	magatartás-zavar
+rendzavarást	compound	91	accept	rend-zavar
+rácsokon	compound	89	reject	
+motorszám	compound	88	reject	
+válaszokon	compound	88	reject	
+roszak	compound	88	reject	
+fordulószám	compound	87	reject	
+evészavarok	compound	87	accept	evés-zavar
+identitászavar	compound	86	accept	identitás-zavar
+mellényes	compound	85	reject	
+decsen	compound	84	reject	
+kiszombori	compound	83	accept	kis-zombor
+vízsugarak	compound	82	accept	víz-sug
+ritmuszavar	compound	79	accept	ritmus-zavar
+viszen	compound	77	reject	
+magatartászavaros	compound	77	accept	magatartás-zavar
+gázsütő	compound	75	accept	gáz-sütő
+versenyes	compound	73	reject	
+kaszab	compound	72	reject	
+vonószenekar	compound	72	accept	vonós-zene
+fúvószene	compound	72	accept	fúvós-zene
+szívritmuszavarok	compound	71	accept	ritmus-zavar
+zöldzónában	compound	71	reject	
+elcsalt	compound	70	reject	
+táncstúdió	compound	69	accept	tánc-stúdió
+alvászavarban	compound	69	accept	alvás-zavar
+rövidzárlatot	compound	68	accept	rövid-zár
+necsak	compound	67	reject	
+ritmuszavarok	compound	67	accept	ritmus-zavar
+macsók	compound	67	reject	
+gázsik	compound	66	reject	
+lucsok	compound	66	reject	
+rövidzár	compound	65	accept	rövid-zár
+eszközsor	compound	65	accept	eszköz-sor
+működészavar	compound	65	accept	működés-zavar
+alvászavart	compound	65	accept	alvás-zavar
+vérzészavar	compound	65	accept	vérzés-zavar
+védzáradékot	compound	64	accept	véd-záradék
+bagyin	compound	64	reject	
+nehézsorsú	compound	63	accept	nehéz-sors
+fúvószenekart	compound	63	accept	fúvós-zene
+kacsok	compound	60	reject	
+zenészeit	compound	59	reject	
+macsós	compound	58	reject	
+vonószenekari	compound	58	accept	vonós-zene
+gázspray	compound	58	accept	gáz-spray
+szívritmuszavarokat	compound	58	accept	ritmus-zavar
+kacsára	compound	57	reject	
+légzészavar	compound	57	accept	légzés-zavar
+fúvószenekarral	compound	57	accept	fúvós-zene
+magatartászavar	compound	56	accept	magatartás-zavar
+alvászavarral	compound	56	accept	alvás-zavar
+fúvószenekarának	compound	55	accept	fúvós-zene
+rosszab	compound	54	reject	
+pénzsegélyt	compound	54	accept	pénz-segély
+igényen	compound	53	reject	
+kilószám	compound	53	reject	
+szélyes	compound	53	reject	
+fúvószenét	compound	53	reject	
+eroszak	compound	52	reject	
+macsói	compound	52	reject	
+koloszár	compound	52	reject	
+eszközsoron	compound	51	accept	eszköz-sor
+leveszöldség	compound	51	accept	leves-zöldség
+taszárt	compound	51	reject	
+macsót	compound	50	reject	
+elcsen	compound	50	reject	
+magatartászavarokkal	compound	50	accept	magatartás-zavar
+kószala	compound	50	reject	
+kavicságy	rule-exception	55	accept	kavicságy

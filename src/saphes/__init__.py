@@ -19,7 +19,6 @@ except PackageNotFoundError:  # pragma: no cover - only when running uninstalled
 
 from saphes.calibration import (  # noqa: E402 - __version__ must precede these
     ThresholdRecommendation,
-    hungarian_letter_count,
     recommended_threshold,
 )
 from saphes.diversity import (  # noqa: E402 - __version__ must precede these
@@ -27,6 +26,10 @@ from saphes.diversity import (  # noqa: E402 - __version__ must precede these
     lexical_diversity,
     mattr,
     ttr_from_counts,
+)
+from saphes.hungarian import (  # noqa: E402 - __version__ must precede these
+    hungarian_letter_count,
+    hungarian_letters,
 )
 from saphes.readability import (  # noqa: E402 - __version__ must precede these
     LIX_BANDS,
@@ -46,6 +49,7 @@ __all__ = [
     "ThresholdRecommendation",
     "__version__",
     "hungarian_letter_count",
+    "hungarian_letters",
     "interpret_lix",
     "lexical_diversity",
     "lix",

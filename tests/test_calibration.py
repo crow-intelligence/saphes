@@ -6,11 +6,11 @@ from hypothesis import given, settings
 from saphes.calibration import (
     HU_DIGRAPHS,
     collapse_digraphs,
-    hungarian_letter_count,
     length_curve,
     match_threshold,
     recommended_threshold,
 )
+from saphes.hungarian import hungarian_letter_count
 from tests.strategies import frequency_counts
 
 # Three types, twenty running tokens, lengths 1, 4 and 9.
@@ -158,28 +158,33 @@ class TestMatchThreshold:
 
 
 class TestDigraphs:
-    """Hungarian letters are not Hungarian characters."""
+    """The naive collapser, kept as a sensitivity check with known failures."""
 
     def test_single_digraph(self) -> None:
-        assert hungarian_letter_count("ország") == 5
+        assert collapse_digraphs("ország") == "orság"
 
     def test_longest_first(self) -> None:
         """The dzs trigraph is one letter, not dz plus s."""
-        assert hungarian_letter_count("bridzs") == 4
+        assert len(collapse_digraphs("bridzs")) == 4
 
     def test_no_digraph_is_unchanged(self) -> None:
         assert collapse_digraphs("ember") == "ember"
 
-    def test_case_folded(self) -> None:
-        assert hungarian_letter_count("Ország") == hungarian_letter_count("ország")
-
     def test_known_failure_at_a_morpheme_boundary(self) -> None:
         """község is köz + ség, so its zs is not the digraph.
 
-        Pinned deliberately. This is the reason character counting stays the
-        default and this is only ever a sensitivity check.
+        Pinned deliberately. This is one of the two reasons the collapser is
+        only ever a sensitivity check. saphes.hungarian gets it right.
         """
-        assert hungarian_letter_count("község") == 5  # the true count is 6
+        assert len(collapse_digraphs("község")) == 5  # the true count is 6
+
+    def test_known_failure_from_cascading_replacement(self) -> None:
+        """Replacing sz with s after a z manufactures a zs, which collapses too.
+
+        The second known failure, and the one that is not documented anywhere
+        else. Pinned so that a change to the replacement order is visible.
+        """
+        assert len(collapse_digraphs("vízszint")) == 6  # the true count is 7
 
     def test_never_lengthens(self) -> None:
         for word in ("ország", "község", "bridzs", "ember", ""):

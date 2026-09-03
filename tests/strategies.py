@@ -18,6 +18,25 @@ hungarian_word = st.text(
 )
 """A word over the Hungarian lowercase alphabet (1-16 letters)."""
 
+hungarian_multigraph_word = st.lists(
+    st.sampled_from(
+        # The nine multi-character letters, their doubled spellings, and enough
+        # single letters to build junctions between them.
+        ["cs", "dz", "dzs", "gy", "ly", "ny", "sz", "ty", "zs"]
+        + ["ccs", "ddz", "ddzs", "ggy", "lly", "nny", "ssz", "tty", "zzs"]
+        + list("acdegilnostyzáé")
+    ),
+    min_size=1,
+    max_size=8,
+).map("".join)
+"""A Hungarian word assembled from letters rather than characters.
+
+``hungarian_word`` draws characters, so it hits ``dzs``, ``ssz`` and the
+junctions between them only by accident. This one is built from the letters
+themselves, so the scanner's ambiguous positions are exercised on every draw.
+The result is a plausible letter sequence, not a real word.
+"""
+
 greek_word = st.text(alphabet="αβγδεζηθικλμνξοπρστυφχψω", min_size=1, max_size=14)
 """A word over the Greek lowercase alphabet, unaccented (1-14 letters)."""
 
