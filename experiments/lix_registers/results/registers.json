@@ -1,0 +1,398 @@
+{
+  "band_mapping": {
+    "chars": [
+      {
+        "band": "very easy",
+        "fraction_below": 0.0335,
+        "mapped_boundary": 35.45,
+        "shift": 5.45,
+        "swedish_boundary": 30.0
+      },
+      {
+        "band": "easy",
+        "fraction_below": 0.3386,
+        "mapped_boundary": 42.95,
+        "shift": 2.95,
+        "swedish_boundary": 40.0
+      },
+      {
+        "band": "standard",
+        "fraction_below": 0.8917,
+        "mapped_boundary": 51.16,
+        "shift": 1.16,
+        "swedish_boundary": 50.0
+      },
+      {
+        "band": "difficult",
+        "fraction_below": 0.9996,
+        "mapped_boundary": 61.6,
+        "shift": 1.6,
+        "swedish_boundary": 60.0
+      }
+    ],
+    "letters": [
+      {
+        "band": "very easy",
+        "fraction_below": 0.0335,
+        "mapped_boundary": 32.63,
+        "shift": 2.63,
+        "swedish_boundary": 30.0
+      },
+      {
+        "band": "easy",
+        "fraction_below": 0.3386,
+        "mapped_boundary": 40.18,
+        "shift": 0.18,
+        "swedish_boundary": 40.0
+      },
+      {
+        "band": "standard",
+        "fraction_below": 0.8917,
+        "mapped_boundary": 48.19,
+        "shift": -1.81,
+        "swedish_boundary": 50.0
+      },
+      {
+        "band": "difficult",
+        "fraction_below": 0.9996,
+        "mapped_boundary": 59.22,
+        "shift": -0.78,
+        "swedish_boundary": 60.0
+      }
+    ]
+  },
+  "band_stability": {
+    "chars": {
+      "10": [
+        34.91,
+        42.74,
+        51.42,
+        61.25
+      ],
+      "100": [
+        35.73,
+        43.1,
+        50.98,
+        56.78
+      ],
+      "25": [
+        35.45,
+        42.95,
+        51.16,
+        61.6
+      ],
+      "50": [
+        35.67,
+        43.04,
+        50.98,
+        61.56
+      ]
+    },
+    "letters": {
+      "10": [
+        32.32,
+        39.94,
+        48.4,
+        57.99
+      ],
+      "100": [
+        32.94,
+        40.37,
+        47.99,
+        54.29
+      ],
+      "25": [
+        32.63,
+        40.18,
+        48.19,
+        59.22
+      ],
+      "50": [
+        33.0,
+        40.25,
+        47.95,
+        59.32
+      ]
+    }
+  },
+  "caveats": [
+    "Leipzig sentence collections are sampled and deduplicated, so there are no documents. Both LIX terms are ratios, so the point estimates are unbiased, but a window of shuffled sentences is more homogeneous than a real text and its spread is correspondingly too narrow.",
+    "The window length of 25 sentences is a choice, not a measurement. It changes the spread and therefore the mapped boundaries; the stability check is in the findings.",
+    "Registers marked author-local are not redistributable and this panel cannot be reproduced for them from a clean checkout. Their numbers are published; their corpora are not.",
+    "A register whose sentence count is marked segmented had its B produced by the bundled splitter rather than by the corpus. LIX implementations disagree mostly on B, so those rows are not directly comparable with the corpus-supplied ones."
+  ],
+  "generated": "2026-08-29T17:37:52+00:00",
+  "limit": 300000,
+  "reference": "leipzig-swe-news@6-chars",
+  "rows": [
+    {
+      "description": "Swedish news, 2022 (the reference)",
+      "language": "sv",
+      "length_policy": "nfc",
+      "lix": 42.44,
+      "long_word_share": 0.2707,
+      "long_words": 1248432,
+      "mean_sentence_length": 15.371,
+      "p10": 33.98,
+      "p50": 42.84,
+      "p90": 50.24,
+      "policy": "chars",
+      "register": "leipzig-swe-news",
+      "sentence_source": "corpus",
+      "sentences": 300000,
+      "threshold": 6,
+      "tier": "public",
+      "windows": 12000,
+      "words": 4611301
+    },
+    {
+      "description": "Hungarian news, 2022",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 62.84,
+      "long_word_share": 0.4454,
+      "long_words": 2445010,
+      "mean_sentence_length": 18.298,
+      "p10": 55.87,
+      "p50": 63.13,
+      "p90": 69.33,
+      "policy": "chars",
+      "register": "leipzig-hun-news",
+      "sentence_source": "corpus",
+      "sentences": 300000,
+      "threshold": 6,
+      "tier": "public",
+      "windows": 12000,
+      "words": 5489286
+    },
+    {
+      "description": "Hungarian news, 2022",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 44.94,
+      "long_word_share": 0.2665,
+      "long_words": 1462718,
+      "mean_sentence_length": 18.298,
+      "p10": 38.36,
+      "p50": 45.04,
+      "p90": 51.39,
+      "policy": "chars",
+      "register": "leipzig-hun-news",
+      "sentence_source": "corpus",
+      "sentences": 300000,
+      "threshold": 8,
+      "tier": "public",
+      "windows": 12000,
+      "words": 5489286
+    },
+    {
+      "description": "Hungarian news, 2022",
+      "language": "hu",
+      "length_policy": "custom:hungarian_letter_count",
+      "lix": 42.11,
+      "long_word_share": 0.2381,
+      "long_words": 1307078,
+      "mean_sentence_length": 18.298,
+      "p10": 35.65,
+      "p50": 42.23,
+      "p90": 48.38,
+      "policy": "letters",
+      "register": "leipzig-hun-news",
+      "sentence_source": "corpus",
+      "sentences": 300000,
+      "threshold": 8,
+      "tier": "public",
+      "windows": 12000,
+      "words": 5489286
+    },
+    {
+      "description": "Hungarian parliamentary speeches, 2022-",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 59.59,
+      "long_word_share": 0.4138,
+      "long_words": 342223,
+      "mean_sentence_length": 18.21,
+      "p10": 50.85,
+      "p50": 59.36,
+      "p90": 68.75,
+      "policy": "chars",
+      "register": "parlamonitor",
+      "sentence_source": "corpus",
+      "sentences": 45412,
+      "threshold": 6,
+      "tier": "author-local",
+      "windows": 1816,
+      "words": 826973
+    },
+    {
+      "description": "Hungarian parliamentary speeches, 2022-",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 43.85,
+      "long_word_share": 0.2564,
+      "long_words": 212034,
+      "mean_sentence_length": 18.21,
+      "p10": 35.62,
+      "p50": 43.5,
+      "p90": 52.45,
+      "policy": "chars",
+      "register": "parlamonitor",
+      "sentence_source": "corpus",
+      "sentences": 45412,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 1816,
+      "words": 826973
+    },
+    {
+      "description": "Hungarian parliamentary speeches, 2022-",
+      "language": "hu",
+      "length_policy": "custom:hungarian_letter_count",
+      "lix": 41.09,
+      "long_word_share": 0.2288,
+      "long_words": 189194,
+      "mean_sentence_length": 18.21,
+      "p10": 32.54,
+      "p50": 40.8,
+      "p90": 49.81,
+      "policy": "letters",
+      "register": "parlamonitor",
+      "sentence_source": "corpus",
+      "sentences": 45412,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 1816,
+      "words": 826973
+    },
+    {
+      "description": "Hungarian corruption journalism (K-Monitor)",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 66.55,
+      "long_word_share": 0.4391,
+      "long_words": 13582092,
+      "mean_sentence_length": 22.635,
+      "p10": 57.54,
+      "p50": 66.51,
+      "p90": 74.93,
+      "policy": "chars",
+      "register": "kmdb",
+      "sentence_source": "segmented",
+      "sentences": 1366456,
+      "threshold": 6,
+      "tier": "author-local",
+      "windows": 54658,
+      "words": 30929638
+    },
+    {
+      "description": "Hungarian corruption journalism (K-Monitor)",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 49.36,
+      "long_word_share": 0.2673,
+      "long_words": 8266508,
+      "mean_sentence_length": 22.635,
+      "p10": 40.9,
+      "p50": 49.07,
+      "p90": 57.4,
+      "policy": "chars",
+      "register": "kmdb",
+      "sentence_source": "segmented",
+      "sentences": 1366456,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 54658,
+      "words": 30929638
+    },
+    {
+      "description": "Hungarian corruption journalism (K-Monitor)",
+      "language": "hu",
+      "length_policy": "custom:hungarian_letter_count",
+      "lix": 46.71,
+      "long_word_share": 0.2407,
+      "long_words": 7446049,
+      "mean_sentence_length": 22.635,
+      "p10": 38.41,
+      "p50": 46.35,
+      "p90": 54.61,
+      "policy": "letters",
+      "register": "kmdb",
+      "sentence_source": "segmented",
+      "sentences": 1366456,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 54658,
+      "words": 30929638
+    },
+    {
+      "description": "Hungarian song lyrics, 1950-2010s",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 39.93,
+      "long_word_share": 0.2237,
+      "long_words": 1608017,
+      "mean_sentence_length": 17.563,
+      "p10": 25.48,
+      "p50": 36.66,
+      "p90": 57.46,
+      "policy": "chars",
+      "register": "lyrics",
+      "sentence_source": "segmented",
+      "sentences": 409294,
+      "threshold": 6,
+      "tier": "author-local",
+      "windows": 16371,
+      "words": 7188396
+    },
+    {
+      "description": "Hungarian song lyrics, 1950-2010s",
+      "language": "hu",
+      "length_policy": "nfc",
+      "lix": 25.67,
+      "long_word_share": 0.0811,
+      "long_words": 582659,
+      "mean_sentence_length": 17.563,
+      "p10": 13.08,
+      "p50": 21.91,
+      "p90": 42.44,
+      "policy": "chars",
+      "register": "lyrics",
+      "sentence_source": "segmented",
+      "sentences": 409294,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 16371,
+      "words": 7188396
+    },
+    {
+      "description": "Hungarian song lyrics, 1950-2010s",
+      "language": "hu",
+      "length_policy": "custom:hungarian_letter_count",
+      "lix": 23.56,
+      "long_word_share": 0.06,
+      "long_words": 431165,
+      "mean_sentence_length": 17.563,
+      "p10": 11.33,
+      "p50": 19.55,
+      "p90": 40.23,
+      "policy": "letters",
+      "register": "lyrics",
+      "sentence_source": "segmented",
+      "sentences": 409294,
+      "threshold": 8,
+      "tier": "author-local",
+      "windows": 16371,
+      "words": 7188396
+    }
+  ],
+  "saphes_version": "0.1.0",
+  "schema_version": 1,
+  "window": 25,
+  "window_ladder": [
+    10,
+    25,
+    50,
+    100
+  ]
+}
