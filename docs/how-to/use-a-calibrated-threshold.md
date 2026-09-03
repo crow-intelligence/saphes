@@ -1,7 +1,18 @@
 # Use a calibrated threshold
 
-saphes ships one empirically calibrated long-word threshold, for Hungarian. This is how to
-use it.
+saphes ships empirically calibrated long-word thresholds for Hungarian. This is how to use
+them.
+
+There are two keys, because a threshold is calibrated against a way of counting letters:
+
+| Key | Counts letters with | Use when |
+|---|---|---|
+| `hu` | the default character count | you pass no `length_policy` |
+| `hu-letters` | `hungarian_letter_count` | you count Hungarian letters |
+
+Both come out at 8. What differs is the share of running words behind that 8 — 27.3% against
+24.4% — so pairing a threshold with the wrong policy measures something the study never
+measured.
 
 ## Look it up
 
@@ -72,11 +83,31 @@ languages this matters for:
 >>> recommended_threshold("grc")
 Traceback (most recent call last):
     ...
-KeyError: "no calibration for 'grc'; calibrated languages: hu"
+KeyError: "no calibration for 'grc'; calibrated languages: hu, hu-letters"
 
 ```
 
 To produce one, see [Calibrate a new language](calibrate-a-new-language.md).
+
+## With the Hungarian letter count
+
+If you count letters rather than characters, take the threshold calibrated for that policy
+and pass both together:
+
+```pycon
+>>> from saphes import hungarian_letter_count
+>>> letters = recommended_threshold("hu-letters")
+>>> result = lix(text, sentences=1,
+...              length_policy=hungarian_letter_count,
+...              long_word_threshold=int(letters))
+>>> result.long_word_threshold, result.length_policy
+(8, 'custom:hungarian_letter_count')
+
+```
+
+Both choices are recorded on the result, so a table of scores says how its lengths were
+counted as well as where the boundary was. See
+[Count letters rather than characters](count-letters-not-characters.md).
 
 ## Note on bands
 

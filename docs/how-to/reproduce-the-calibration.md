@@ -25,7 +25,8 @@ uv run python experiments/lix_calibration/scripts/download_data.py
 uv run python experiments/lix_calibration/scripts/run.py
 ```
 
-About four minutes. Outputs:
+About ten minutes: each stratum feeds both a character curve and a letter curve, and the
+letter count is pure Python over ten million types. Outputs:
 
 - `experiments/lix_calibration/results/lix_calibration.json` — full provenance, every curve
 - `experiments/lix_calibration/findings.md` — the writeup
@@ -34,7 +35,23 @@ About four minutes. Outputs:
 The generator runs `ruff format` on its own output, so re-running reproduces the committed
 file byte for byte apart from the timestamp.
 
-## 3. Validate against running text
+The literal carries **two** keys. `hu` is calibrated for the default character count and
+`hu-letters` for `hungarian_letter_count`, each with its own agreement panel measured under
+its own policy. `SCHEMA_VERSION` is 2 because of that.
+
+## 3. Measure other registers, and map the bands
+
+```bash
+uv run python experiments/lix_registers/scripts/run.py --tier1-only
+```
+
+A separate study, in `experiments/lix_registers/`. It answers the two questions this one
+leaves open: whether the threshold holds outside web and news, and what a Hungarian LIX score
+means once `LixResult.band` has stopped returning a label. It needs no new download — the
+Leipzig archives already carry a `-sentences.txt` beside the word list, which is what makes a
+real LIX possible on the Swedish side.
+
+## 4. Validate against running text
 
 ```bash
 uv run python experiments/lix_calibration/scripts/download_data.py --with-corpus-part
@@ -57,6 +74,13 @@ rather than publishing figures that drifted:
 Work out which behaviour is correct before updating the anchor. That mechanism has already
 caught one real bug — a minimum-frequency filter applied before merging casing variants
 instead of after.
+
+## Related studies
+
+- `experiments/lix_registers/` — the register panel and the band mapping.
+- `experiments/hungarian_boundaries/` — where the 38 compound seams in
+  `hungarian_letter_count`'s boundary table came from, and what the corpus could not
+  establish.
 
 ## Downloads
 

@@ -10,9 +10,14 @@ RESULTS_DIR = EXPERIMENT_DIR / "results"
 
 
 def log(step: str, message: str) -> None:
-    """Print a timestamped log line: [step] message."""
+    """Print a timestamped log line: [step] message.
+
+    Flushed, because these scripts run for minutes and are usually watched
+    through a redirect, where a buffered stdout shows nothing at all until the
+    process exits.
+    """
     ts = datetime.now(tz=UTC).strftime("%H:%M:%S")
-    print(f"{ts} [{step}] {message}")
+    print(f"{ts} [{step}] {message}", flush=True)
 
 
 def require_file(path: Path, hint: str) -> None:

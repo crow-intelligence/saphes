@@ -32,7 +32,13 @@ from utils import (  # noqa: E402
 
 CORPUS_PART = "web2-4p-0.tar.gz"
 DEFAULT_LIMIT = 5_000
-MIN_WORDS = 25  # skip stubs; a LIX over five words means nothing
+MIN_WORDS = 25
+# How far the running-text long-word share may sit from the frequency list's
+# before the transfer is called into question. This was 0.10 — ten percentage
+# points — which almost no Hungarian corpus could fail, so it asserted nothing.
+# The observed gap is 1.6 points; 5 leaves room for a genuine register
+# difference while still being able to fail.
+TRANSFER_TOLERANCE = 0.05  # skip stubs; a LIX over five words means nothing
 BJORNSSON = 6
 
 
@@ -86,7 +92,8 @@ def main() -> None:
 
     log(
         "validate",
-        f"{read:,} documents read; used {read - skipped_short - skipped_no_sentence:,}, "
+        f"{read:,} documents read; "
+        f"used {read - skipped_short - skipped_no_sentence:,}, "
         f"skipped {skipped_short:,} under {MIN_WORDS} words and "
         f"{skipped_no_sentence:,} with no sentence markup",
     )
@@ -116,15 +123,20 @@ def main() -> None:
         f"this running text gives {fmt_share(actual)} "
         f"(difference {abs(actual - predicted) * 100:.2f} points)",
     )
-    if abs(actual - predicted) > 0.10:
+    if abs(actual - predicted) > TRANSFER_TOLERANCE:
         log(
             "check",
-            "That is a wide gap. The crawl part is a different register from the "
-            "frequency list's 4% stratum, so some drift is expected — but check "
-            "before trusting the threshold on this register.",
+            f"That is more than {TRANSFER_TOLERANCE * 100:.0f} points. The crawl "
+            "part is a different register from the frequency list's 4% stratum, "
+            "so some drift is expected — but check before trusting the threshold "
+            "on this register.",
         )
     else:
-        log("check", "Within 10 points: the calibration transfers to running text.")
+        log(
+            "check",
+            f"Within {TRANSFER_TOLERANCE * 100:.0f} points: the calibration "
+            "transfers to running text.",
+        )
 
     if len(pairs) < MIN_WORDS:
         log("asymmetry", "Too few analysed tokens in this sample to compare streams.")
@@ -171,6 +183,7 @@ def main() -> None:
         read=read,
         used=read - skipped_short - skipped_no_sentence,
         skipped_short=skipped_short,
+        skipped_no_sentence=skipped_no_sentence,
         total_words=total_words,
         total_sentences=total_sentences,
         long_default=long_default,
@@ -212,7 +225,8 @@ def _write_validation(**f: object) -> None:
         "",
         f"- Source: `{CORPUS_PART}`, {f['read']:,} documents read"
         f" (limit {f['limit'] or 'none'})",
-        f"- Used {f['used']:,}; skipped {f['skipped_short']:,} under {MIN_WORDS} words",
+        f"- Used {f['used']:,}; skipped {f['skipped_short']:,} under {MIN_WORDS}"
+        f" words, {f['skipped_no_sentence']:,} with no sentence markup",
         f"- **A = {words:,}** words, **B = {sentences:,}** sentences",
         f"- Mean sentence length: {words / sentences:.2f} words",
         "",
@@ -226,7 +240,7 @@ def _write_validation(**f: object) -> None:
         f"{fmt_share(tuned_share)} | {tuned_score:.2f} |",
         "",
         f"At Björnsson's threshold, ordinary 2000s web Hungarian scores "
-        f"{default_score:.1f} — deep in \"very difficult\", which is not a "
+        f'{default_score:.1f} — deep in "very difficult", which is not a '
         "description of this text, it is the index saturating. At the calibrated "
         f"threshold it scores {tuned_score:.1f}.",
         "",

@@ -56,26 +56,68 @@ leipzig-hun                      8
 mokk-4pct                        8
 mokk-4pct-asterisk-dropped       8
 mokk-4pct-digraphs-collapsed     8
+mokk-4pct-letters                8
 mokk-8pct                        8
 mokk-full                        8
 
 ```
 
+## The letter-count recommendation
+
+The same match, remeasured with `saphes.hungarian.hungarian_letter_count` instead of the
+default character count. Same threshold, and a different share behind it — which is why it
+is a separate key rather than the same one:
+
+```pycon
+>>> letters = recommended_threshold("hu-letters")
+>>> letters.threshold, letters.bracket
+(8, (7, 8))
+>>> round(letters.matched_share, 4), round(letters.residual, 4)
+(0.2441, 0.0124)
+
+```
+
+Its residual is the *smaller* of the two — 0.0124 against 0.0168 — so on the primary curve the
+letter count matches Swedish more closely than the character count does. Its supporting panel
+is weaker, though, and the record says so rather than reusing the character-policy one:
+
+```pycon
+>>> for source, threshold in sorted(letters.agreement):
+...     print(f"{source:<36} {threshold}")
+leipzig-hun-letters                  7
+mokk-4pct-asterisk-dropped-letters   8
+mokk-4pct-letters                    8
+mokk-8pct-letters                    8
+mokk-full-letters                    7
+
+```
+
+Three of five choose 8; two choose 7, and the bracket `(7, 8)` records that. Read the bracket
+rather than the winner alone when the panel is split like this — unlike `hu`, where all seven
+curves agree.
+
 ## Sensitivity
 
-Two variants, computed so the cost of each methodological choice is visible.
+Three variants, computed so the cost of each methodological choice is visible.
 
-| >T | correct (strip and merge `*`) | naive (discard starred) | digraphs collapsed |
-|---:|---:|---:|---:|
-| 6 | 44.52% | 45.94% | 41.51% |
-| 7 | 35.38% | 36.57% | 32.71% |
-| 8 | 27.33% | 28.33% | 24.40% |
-| 9 | 19.83% | 20.60% | 17.30% |
+| >T | correct (strip and merge `*`) | naive (discard starred) | digraphs collapsed | letters |
+|---:|---:|---:|---:|---:|
+| 6 | 44.52% | 45.94% | 41.51% | 41.52% |
+| 7 | 35.38% | 36.57% | 32.71% | 32.71% |
+| 8 | 27.33% | 28.33% | 24.40% | 24.41% |
+| 9 | 19.83% | 20.60% | 17.30% | 17.31% |
 
 The MOKK lists mark capitalised, mostly sentence-initial forms with a trailing asterisk.
 `A*` alone is 8.9 million tokens in the 4% stratum. Discarding those rows biases the mean
 length upward, because they are overwhelmingly short function words. It happens not to change
 the answer here.
+
+The last two columns are the two Hungarian letter counts. `digraphs collapsed` is the naive
+one — `collapse_digraphs`, which over-merges because its replacement cascades. `letters` is
+the boundary-aware scanner. They differ by **0.01 percentage points**, which is the whole
+measured effect of knowing where morpheme boundaries are, and neither changes the threshold.
+That is not a coincidence: a correct letter count is bounded below by the naive collapse and
+above by the raw character count, and both of those already choose 8.
 
 ## Validation against running text
 

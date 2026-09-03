@@ -35,6 +35,36 @@
       "tokens": 15786586,
       "types": 151296
     },
+    "leipzig-hun-letters": {
+      "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 5.6806,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.894372,
+        "10": 0.088708,
+        "11": 0.0532,
+        "12": 0.029968,
+        "13": 0.016185,
+        "14": 0.008688,
+        "15": 0.004485,
+        "16": 0.002075,
+        "17": 0.00097,
+        "18": 0.000404,
+        "19": 0.000157,
+        "2": 0.774756,
+        "20": 6.6e-05,
+        "3": 0.685605,
+        "4": 0.604212,
+        "5": 0.491602,
+        "6": 0.384022,
+        "7": 0.294262,
+        "8": 0.206808,
+        "9": 0.140054
+      },
+      "tokens": 15786586,
+      "types": 151296
+    },
     "leipzig-swe": {
       "length_policy": "nfc",
       "mean_length": 5.0522,
@@ -125,8 +155,38 @@
       "tokens": 517267619,
       "types": 1392317
     },
-    "mokk-4pct-digraphs-collapsed": {
+    "mokk-4pct-asterisk-dropped-letters": {
       "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 6.0935,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.910865,
+        "10": 0.121637,
+        "11": 0.077667,
+        "12": 0.047162,
+        "13": 0.027244,
+        "14": 0.015444,
+        "15": 0.008216,
+        "16": 0.004136,
+        "17": 0.002084,
+        "18": 0.00096,
+        "19": 0.000464,
+        "2": 0.801929,
+        "20": 0.000227,
+        "3": 0.71085,
+        "4": 0.636641,
+        "5": 0.526895,
+        "6": 0.428808,
+        "7": 0.338548,
+        "8": 0.253312,
+        "9": 0.180257
+      },
+      "tokens": 517267619,
+      "types": 1392317
+    },
+    "mokk-4pct-digraphs-collapsed": {
+      "length_policy": "custom:naive_letter_count",
       "mean_length": 5.9668,
       "min_frequency": 5,
       "shares": {
@@ -151,6 +211,36 @@
         "7": 0.327098,
         "8": 0.244012,
         "9": 0.17302
+      },
+      "tokens": 554861558,
+      "types": 1422686
+    },
+    "mokk-4pct-letters": {
+      "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 5.9675,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.900316,
+        "10": 0.116718,
+        "11": 0.07447,
+        "12": 0.045091,
+        "13": 0.026024,
+        "14": 0.014744,
+        "15": 0.007843,
+        "16": 0.003942,
+        "17": 0.001984,
+        "18": 0.000914,
+        "19": 0.000441,
+        "2": 0.785928,
+        "20": 0.000215,
+        "3": 0.695475,
+        "4": 0.621939,
+        "5": 0.511693,
+        "6": 0.415229,
+        "7": 0.327148,
+        "8": 0.244141,
+        "9": 0.173135
       },
       "tokens": 554861558,
       "types": 1422686
@@ -185,6 +275,36 @@
       "tokens": 870983275,
       "types": 2007713
     },
+    "mokk-8pct-letters": {
+      "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 5.8926,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.902659,
+        "10": 0.109836,
+        "11": 0.069595,
+        "12": 0.041683,
+        "13": 0.024058,
+        "14": 0.013522,
+        "15": 0.007183,
+        "16": 0.003632,
+        "17": 0.001837,
+        "18": 0.000848,
+        "19": 0.000407,
+        "2": 0.786577,
+        "20": 0.000199,
+        "3": 0.69268,
+        "4": 0.616563,
+        "5": 0.502784,
+        "6": 0.404498,
+        "7": 0.316023,
+        "8": 0.233403,
+        "9": 0.164475
+      },
+      "tokens": 870983275,
+      "types": 2007713
+    },
     "mokk-full": {
       "length_policy": "nfc",
       "mean_length": 5.963,
@@ -214,43 +334,110 @@
       },
       "tokens": 1360685516,
       "types": 3023270
+    },
+    "mokk-full-letters": {
+      "length_policy": "custom:hungarian_letter_count",
+      "mean_length": 5.7254,
+      "min_frequency": 5,
+      "shares": {
+        "0": 1.0,
+        "1": 0.911004,
+        "10": 0.097466,
+        "11": 0.060992,
+        "12": 0.036024,
+        "13": 0.02059,
+        "14": 0.011504,
+        "15": 0.006149,
+        "16": 0.003155,
+        "17": 0.001629,
+        "18": 0.000779,
+        "19": 0.00039,
+        "2": 0.788817,
+        "20": 0.000201,
+        "3": 0.679431,
+        "4": 0.594426,
+        "5": 0.479019,
+        "6": 0.380859,
+        "7": 0.292431,
+        "8": 0.212486,
+        "9": 0.147763
+      },
+      "tokens": 1360685516,
+      "types": 3023270
     }
   },
-  "generated": "2026-07-29T17:08:25+00:00",
+  "generated": "2026-08-29T17:10:18+00:00",
   "method": {
     "capitalisation_marker": "strip-trailing-asterisk-then-merge",
     "equipercentile_reference_threshold": 6,
-    "length_policy": "nfc",
     "min_frequency": 5,
     "stratum": "4pct",
     "weighting": "token"
   },
-  "recommendation": {
-    "agreement": {
-      "leipzig-hun": 8,
-      "mokk-4pct": 8,
-      "mokk-4pct-asterisk-dropped": 8,
-      "mokk-4pct-digraphs-collapsed": 8,
-      "mokk-8pct": 8,
-      "mokk-full": 8
+  "recommendations": [
+    {
+      "agreement": {
+        "leipzig-hun": 8,
+        "mokk-4pct": 8,
+        "mokk-4pct-asterisk-dropped": 8,
+        "mokk-4pct-digraphs-collapsed": 8,
+        "mokk-4pct-letters": 8,
+        "mokk-8pct": 8,
+        "mokk-full": 8
+      },
+      "bracket": [
+        8,
+        9
+      ],
+      "caveats": [
+        "The MOKK Webcorpus crawl is from winter 2003: 2000s web Hungarian, not song lyrics, not literary prose. A general-language reference, not a register match.",
+        "Register matters for readability. Before trusting this threshold on your own texts, recompute the long-word share on a sample of them and check it lands where the calibration predicts.",
+        "A calibrated threshold is a default, not a truth. The parameter stays exposed precisely because no single number is right everywhere."
+      ],
+      "is_boundary": false,
+      "language": "hu",
+      "long_word_threshold": 8,
+      "matched_share": 0.273325,
+      "reference_id": "leipzig-swe_news_2022_1M",
+      "reference_share": 0.256512,
+      "reference_threshold": 6,
+      "residual": 0.016813,
+      "runner_up": 9,
+      "runner_up_residual": 0.058187
     },
-    "bracket": [
-      8,
-      9
-    ],
-    "is_boundary": false,
-    "language": "hu",
-    "long_word_threshold": 8,
-    "matched_share": 0.273325,
-    "reference_id": "leipzig-swe_news_2022_1M",
-    "reference_share": 0.256512,
-    "reference_threshold": 6,
-    "residual": 0.016813,
-    "runner_up": 9,
-    "runner_up_residual": 0.058187
-  },
+    {
+      "agreement": {
+        "leipzig-hun-letters": 7,
+        "mokk-4pct-asterisk-dropped-letters": 8,
+        "mokk-4pct-letters": 8,
+        "mokk-8pct-letters": 8,
+        "mokk-full-letters": 7
+      },
+      "bracket": [
+        7,
+        8
+      ],
+      "caveats": [
+        "The MOKK Webcorpus crawl is from winter 2003: 2000s web Hungarian, not song lyrics, not literary prose. A general-language reference, not a register match.",
+        "Register matters for readability. Before trusting this threshold on your own texts, recompute the long-word share on a sample of them and check it lands where the calibration predicts.",
+        "A calibrated threshold is a default, not a truth. The parameter stays exposed precisely because no single number is right everywhere.",
+        "This threshold belongs to saphes.hungarian.hungarian_letter_count and to no other length policy. Pairing it with the default character count measures something this study never measured.",
+        "The letter count knows a rule for the -sag/-seg suffix and a table of attested compound seams. A compound outside that table has its seam read as a digraph and is counted one letter short, silently."
+      ],
+      "is_boundary": false,
+      "language": "hu-letters",
+      "long_word_threshold": 8,
+      "matched_share": 0.244141,
+      "reference_id": "leipzig-swe_news_2022_1M",
+      "reference_share": 0.256512,
+      "reference_threshold": 6,
+      "residual": 0.012371,
+      "runner_up": 7,
+      "runner_up_residual": 0.070636
+    }
+  ],
   "saphes_version": "0.1.0",
-  "schema_version": 1,
+  "schema_version": 2,
   "smoke_run": false,
   "sources": {
     "hu_crosscheck": {
