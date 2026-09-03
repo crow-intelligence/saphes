@@ -23,6 +23,14 @@ trusting one on your own texts, recompute the share on a sample of them and chec
 it lands where the calibration predicts. That is what this module is for; the
 shipped numbers are a starting point, not an answer to every question.
 
+**A threshold belongs to a length policy.** What counts as a "letter" is the
+other half of the second LIX term, and Hungarian writes nine of its letters with
+more than one character. So the shipped table is keyed by language *and* policy:
+``"hu"`` for the default character count, ``"hu-letters"`` for
+:func:`saphes.hungarian.hungarian_letter_count`. Both come out at 8; the share of
+running words behind that 8 does not, so pairing one with the other's policy
+measures something neither calibration measured.
+
 The I/O half of the study — downloading corpora, decoding them, and building the
 frequency mappings — lives in ``experiments/lix_calibration/`` and is deliberately
 not part of the package. Everything here is pure, so its doctests run in CI on a
@@ -91,7 +99,7 @@ def collapse_digraphs(word: str, *, digraphs: tuple[str, ...] = HU_DIGRAPHS) -> 
 
         - ``word`` must be a ``str``; ``bytes`` raises ``TypeError``
           (implicit, from ``str.replace`` at
-          calibration.py:151).
+          calibration.py:159).
         - ``word`` must already be **lowercase**. Matching is
           case-sensitive, so ``"Ország"`` keeps its ``sz`` uncollapsed and
           returns the wrong length with no error. ``hungarian_letter_count``
@@ -381,7 +389,7 @@ def length_curve(
           of ``(word, count)`` tuples — a natural reading of the name —
           raises ``AttributeError: 'list' object has no attribute 'items'``
           (implicit, at
-          calibration.py:475).
+          calibration.py:483).
         - Keys must be strings, or ``word_length`` raises ``TypeError``.
         - Values must be **token frequencies in running text**, not ones.
           This is the study's likeliest silent failure and the signature is
@@ -393,7 +401,7 @@ def length_curve(
           ``LengthCurve.tokens`` a float despite its ``int`` annotation.
         - ``length_policy``, if callable, must return an int; a
           zero-returning policy silently drops the word at
-          calibration.py:482.
+          calibration.py:490.
 
         Guarantees:
 
@@ -410,7 +418,7 @@ def length_curve(
         Silences:
 
         - Words whose measured length is zero are skipped without record at
-          calibration.py:482 — they count toward neither ``tokens``
+          calibration.py:490 — they count toward neither ``tokens``
           nor ``types``. With the built-in policies only the empty string
           does this; with a custom policy it may not be.
 
@@ -538,7 +546,7 @@ def match_threshold(
           rather than rounded away.
         - ``runner_up`` is the second-ranked threshold, or the winner itself
           when the target curve has exactly one point (
-          calibration.py:576
+          calibration.py:584
           ). In that degenerate case ``is_boundary`` compares the winner
           with itself and reports ``True``.
         - The whole target curve travels on ``table``, so the choice stays
@@ -599,7 +607,10 @@ class ThresholdRecommendation:
     """A calibrated long-word threshold, with everything behind it.
 
     Attributes:
-        language: ISO 639 code of the calibrated language.
+        language: The calibration key. Names a language **and a length
+            policy**: ``"hu"`` is calibrated for the default character count,
+            ``"hu-letters"`` for ``saphes.hungarian.hungarian_letter_count``.
+            Not an ISO 639 code.
         threshold: The recommended ``long_word_threshold``.
         bracket: The two thresholds the reference share falls between.
         matched_share: The language's long-word share at ``threshold``.
@@ -674,7 +685,10 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
     on behind your back.
 
     Args:
-        language: ISO 639 code, e.g. ``"hu"``.
+        language: The calibration key, e.g. ``"hu"``. Keys name a length
+            policy as well as a language — see :class:`ThresholdRecommendation`
+            — so ``"hu"`` and ``"hu-letters"`` are different calibrations of the
+            same language and are not interchangeable.
 
     Returns:
         A :class:`ThresholdRecommendation`.
@@ -697,14 +711,25 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
         >>> round(hu.matched_share, 3), round(hu.reference_share, 3)
         (0.273, 0.257)
 
-        Six independently computed curves — two Hungarian corpora nineteen years
-        apart, three sampling strata, and a digraph-aware variant — all choose
-        the same threshold:
+        Seven independently computed curves — two Hungarian corpora nineteen
+        years apart, three sampling strata, and two letter-counting variants —
+        all choose the same threshold:
 
         >>> sorted({t for _, t in hu.agreement})
         [8]
         >>> hu.is_boundary
         False
+
+        The letter policy is calibrated separately, and its panel is measured
+        under that policy rather than borrowed. It agrees on 8 — the residual is
+        smaller than the character policy's — but it is not unanimous, and the
+        record says so rather than rounding it off:
+
+        >>> letters = recommended_threshold("hu-letters")
+        >>> letters.threshold, round(letters.residual, 4)
+        (8, 0.0124)
+        >>> sorted({t for _, t in letters.agreement})
+        [7, 8]
 
         Use it explicitly. ``kertben`` is seven letters — long under Björnsson's
         Swedish threshold, ordinary under the Hungarian one:
@@ -722,7 +747,7 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
         >>> recommended_threshold("grc")
         Traceback (most recent call last):
             ...
-        KeyError: "no calibration for 'grc'; calibrated languages: hu"
+        KeyError: "no calibration for 'grc'; calibrated languages: hu, hu-letters"
 
     Contract:
         Preconditions:
@@ -747,7 +772,7 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
         - Depends on ``saphes.datasets._lix_calibration``, which is
           **generated** by ``experiments/lix_calibration/scripts/run.py``
           and imported lazily at
-          calibration.py:757.
+          calibration.py:782.
           Nothing verifies that the shipped literal matches the committed
           JSON it was produced from, and nothing can — the corpora are not
           distributed. A hand-edit to that module would be invisible here;
@@ -798,7 +823,7 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
         Silences:
 
         - A missing ``__qualname__`` falls back to ``repr`` at
-          calibration.py:807,
+          calibration.py:832,
           so the recorded ``LengthCurve.length_policy`` can embed an address
           and differ between processes.
     """

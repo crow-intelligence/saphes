@@ -6,14 +6,19 @@ The data lives inline as a Python literal so it is always importable in
 doctests with no package-data machinery, matching the rest of
 ``saphes.datasets``. The full provenance record, including every curve, is
 at experiments/lix_calibration/results/lix_calibration.json.
+
+Keys name a language *and a length policy*: ``hu`` is calibrated for the
+default character count, ``hu-letters`` for the Hungarian letter count in
+``saphes.hungarian``. They are not interchangeable — the threshold happens
+to agree, but the matched share behind it does not.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-GENERATED = "2026-07-29T17:08:25+00:00"
-SCHEMA_VERSION = 1
+GENERATED = "2026-08-29T17:10:18+00:00"
+SCHEMA_VERSION = 2
 
 # A heterogeneous provenance record: ints, floats, strings and tuples of
 # pairs. Typed as Any rather than a TypedDict because it is generated.
@@ -34,6 +39,7 @@ CALIBRATIONS: dict[str, dict[str, Any]] = {
             ("mokk-4pct", 8),
             ("mokk-4pct-asterisk-dropped", 8),
             ("mokk-4pct-digraphs-collapsed", 8),
+            ("mokk-4pct-letters", 8),
             ("mokk-8pct", 8),
             ("mokk-full", 8),
         ),
@@ -57,6 +63,57 @@ CALIBRATIONS: dict[str, dict[str, Any]] = {
                 "A calibrated threshold is a default, not a truth. The parameter "
                 "stays exposed precisely because no single number is right "
                 "everywhere."
+            ),
+        ),
+    },
+    "hu-letters": {
+        "threshold": 8,
+        "bracket": (7, 8),
+        "matched_share": 0.244141,
+        "reference_share": 0.256512,
+        "reference_id": "leipzig-swe_news_2022_1M",
+        "reference_threshold": 6,
+        "residual": 0.012371,
+        "runner_up": 7,
+        "runner_up_residual": 0.070636,
+        "is_boundary": False,
+        "agreement": (
+            ("leipzig-hun-letters", 7),
+            ("mokk-4pct-asterisk-dropped-letters", 8),
+            ("mokk-4pct-letters", 8),
+            ("mokk-8pct-letters", 8),
+            ("mokk-full-letters", 7),
+        ),
+        "sources": (
+            "mokk-web2.2-4pct",
+            "leipzig-swe_news_2022_1M",
+            "leipzig-hun_news_2022_1M",
+        ),
+        "caveats": (
+            (
+                "The MOKK Webcorpus crawl is from winter 2003: 2000s web Hungarian, "
+                "not song lyrics, not literary prose. A general-language reference, "
+                "not a register match."
+            ),
+            (
+                "Register matters for readability. Before trusting this threshold on "
+                "your own texts, recompute the long-word share on a sample of them "
+                "and check it lands where the calibration predicts."
+            ),
+            (
+                "A calibrated threshold is a default, not a truth. The parameter "
+                "stays exposed precisely because no single number is right "
+                "everywhere."
+            ),
+            (
+                "This threshold belongs to saphes.hungarian.hungarian_letter_count "
+                "and to no other length policy. Pairing it with the default character "
+                "count measures something this study never measured."
+            ),
+            (
+                "The letter count knows a rule for the -sag/-seg suffix and a table "
+                "of attested compound seams. A compound outside that table has its "
+                "seam read as a digraph and is counted one letter short, silently."
             ),
         ),
     },

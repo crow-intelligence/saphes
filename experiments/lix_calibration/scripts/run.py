@@ -22,15 +22,23 @@ from pathlib import Path
 import saphes
 from saphes.calibration import (
     LengthCurve,
-    hungarian_letter_count,
+    collapse_digraphs,
     length_curve,
     match_threshold,
 )
+from saphes.hungarian import hungarian_letter_count
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from freqlist import read_mokk  # noqa: E402
 from leipzig import read_leipzig  # noqa: E402
-from utils import DATA_DIR, EXPERIMENT_DIR, RESULTS_DIR, fmt_share, log, require_file  # noqa: E402
+from utils import (  # noqa: E402
+    DATA_DIR,
+    EXPERIMENT_DIR,
+    RESULTS_DIR,
+    fmt_share,
+    log,
+    require_file,
+)
 
 SMOKE_FILE = "web2.2-freq-sorted.top100k.txt"
 FULL_FILE = "web2.2-freq-sorted.txt.gz"
@@ -41,13 +49,17 @@ MAX_THRESHOLD = 20
 MIN_FREQUENCY = 5
 REFERENCE_THRESHOLD = 6
 LANGUAGE = "hu"
+LETTER_LANGUAGE = "hu-letters"
 
 # Thresholds shown in the printed and written tables. The full curve goes to
 # MAX_THRESHOLD and lives in the JSON regardless.
 REPORT_RANGE = range(4, 13)
 
 PACKAGE_LITERAL = (
-    Path(__file__).resolve().parents[3] / "src" / "saphes" / "datasets"
+    Path(__file__).resolve().parents[3]
+    / "src"
+    / "saphes"
+    / "datasets"
     / "_lix_calibration.py"
 )
 
@@ -62,6 +74,19 @@ CAVEATS = (
     "exposed precisely because no single number is right everywhere.",
 )
 
+# Everything above, plus what is specific to counting letters rather than
+# characters. Without this the two shipped records carry byte-identical caveats
+# and the letter policy looks like it costs nothing.
+LETTER_CAVEATS = (
+    *CAVEATS,
+    "This threshold belongs to saphes.hungarian.hungarian_letter_count and to "
+    "no other length policy. Pairing it with the default character count "
+    "measures something this study never measured.",
+    "The letter count knows a rule for the -sag/-seg suffix and a table of "
+    "attested compound seams. A compound outside that table has its seam read "
+    "as a digraph and is counted one letter short, silently.",
+)
+
 CITATIONS = (
     "Halácsy, Kornai, Németh, Rung, Szakadát, Trón (2004). Creating open "
     "language resources for Hungarian. LREC.",
@@ -72,18 +97,50 @@ CITATIONS = (
 )
 
 
-def curve_from_mokk(
-    path: Path, stratum: str, *, keep_asterisk: bool = True, label: str | None = None
-) -> LengthCurve:
-    """Read one MOKK stratum and build its length curve."""
+def mokk_curves(
+    path: Path,
+    stratum: str,
+    *,
+    keep_asterisk: bool = True,
+    label: str | None = None,
+    policies: dict[str, object] | None = None,
+) -> dict[str, LengthCurve]:
+    """Read one MOKK stratum once and build every curve that stratum feeds.
+
+    The frequency list is 115 MB gzipped and takes about a minute to read, so a
+    curve per read would cost four extra minutes now that each stratum feeds
+    both a character curve and a letter curve. The counts go out of scope with
+    this function, which matters: a full-stratum Counter is ten million entries.
+
+    Args:
+        path: The frequency list.
+        stratum: Which column. See ``freqlist.STRATUM_COLUMNS``.
+        keep_asterisk: Strip and merge the capitalisation marker. Always ``True``
+            except in the sensitivity run that shows what dropping it costs.
+        label: Base label; defaults to ``mokk-<stratum>``.
+        policies: Extra ``suffix -> length_policy`` curves to build from the same
+            counts, labelled ``<label>-<suffix>``.
+
+    Returns:
+        Label to curve, always including the base character-count curve.
+    """
     counts, report = read_mokk(path, stratum=stratum, keep_asterisk=keep_asterisk)
     log("mokk", report.summary())
-    return length_curve(
-        counts,
-        label=label or f"mokk-{stratum}",
-        max_threshold=MAX_THRESHOLD,
-        min_frequency=MIN_FREQUENCY,
-    )
+    base = label or f"mokk-{stratum}"
+
+    def build(name: str, policy: object) -> LengthCurve:
+        return length_curve(
+            counts,
+            label=name,
+            max_threshold=MAX_THRESHOLD,
+            min_frequency=MIN_FREQUENCY,
+            length_policy=policy,  # type: ignore[arg-type]
+        )
+
+    built = {base: build(base, "nfc")}
+    for suffix, policy in (policies or {}).items():
+        built[f"{base}-{suffix}"] = build(f"{base}-{suffix}", policy)
+    return built
 
 
 def curve_from_leipzig(path: Path, language: str) -> tuple[LengthCurve, dict[str, str]]:
@@ -99,12 +156,29 @@ def curve_from_leipzig(path: Path, language: str) -> tuple[LengthCurve, dict[str
     return curve, dict(report.meta)
 
 
-def digraph_curve(path: Path) -> LengthCurve:
-    """Rebuild the primary curve counting Hungarian letters, not characters."""
-    counts, _ = read_mokk(path, stratum="4pct")
+def naive_letter_count(word: str) -> int:
+    """The pre-0.2.0 letter count: collapse each digraph to its first character.
+
+    Kept so the published sensitivity column keeps meaning across releases. It
+    over-merges — the replacement cascades, so `vízszint` comes out at six
+    letters when it is seven — which is exactly what the comparison against
+    `mokk-4pct-letters` now shows.
+    """
+    return len(collapse_digraphs(word.casefold()))
+
+
+def leipzig_letters_curve(path: Path) -> LengthCurve:
+    """The Leipzig Hungarian curve, recounted in letters.
+
+    The Swedish reference needs no letter variant: Swedish orthography has no
+    multi-character letters, so its character count already is a letter count.
+    That asymmetry is the whole reason the reference stays fixed while the
+    target curve is remeasured.
+    """
+    counts, _ = read_leipzig(path, language="hun")
     return length_curve(
         counts,
-        label="mokk-4pct-digraphs-collapsed",
+        label="leipzig-hun-letters",
         max_threshold=MAX_THRESHOLD,
         min_frequency=MIN_FREQUENCY,
         length_policy=hungarian_letter_count,
@@ -148,13 +222,29 @@ def check_anchors(curves: dict[str, LengthCurve], *, smoke: bool) -> None:
         mokk = curves["mokk-4pct"]
         _expect("mokk-4pct(top100k) share>6", mokk.share_above(6), 0.3889, tol=0.003)
         _expect("mokk-4pct(top100k) mean length", mokk.mean_length, 5.715, tol=0.02)
+    else:
+        # The two numbers the published recommendations are matched from. The
+        # letters curve is the one with no history, so it is anchored from the
+        # first run rather than after it has had a chance to drift unnoticed.
+        _expect(
+            "mokk-4pct share>8", curves["mokk-4pct"].share_above(8), 0.2733, tol=0.002
+        )
+        _expect(
+            "mokk-4pct-letters share>8",
+            curves["mokk-4pct-letters"].share_above(8),
+            0.2441,
+            tol=0.002,
+        )
 
 
 def _expect(name: str, actual: float, expected: float, *, tol: float) -> None:
     """Log an anchor check, and fail loudly if it drifts."""
     if abs(actual - expected) > tol:
         log("anchor", f"MISMATCH {name}: expected ~{expected}, got {actual:.4f}")
-        log("anchor", "The reader is producing different numbers. Stop and find out why.")
+        log(
+            "anchor",
+            "The reader is producing different numbers. Stop and find out why.",
+        )
         sys.exit(1)
     log("anchor", f"ok {name} = {actual:.4f} (expected ~{expected})")
 
@@ -179,30 +269,56 @@ def main() -> None:
 
     swe_curve, swe_meta = curve_from_leipzig(DATA_DIR / LEIPZIG_SWE, "swe")
     hun_curve, hun_meta = curve_from_leipzig(DATA_DIR / LEIPZIG_HUN, "hun")
-    primary = curve_from_mokk(mokk_path, "4pct")
-    stratum_8 = curve_from_mokk(mokk_path, "8pct")
-    stratum_full = curve_from_mokk(mokk_path, "full")
-    no_asterisk = curve_from_mokk(
-        mokk_path, "4pct", keep_asterisk=False, label="mokk-4pct-asterisk-dropped"
+
+    # One read per stratum. The 4% stratum feeds four curves: the primary, the
+    # old collapse-based letter count kept for continuity, and the scanner.
+    primary_set = mokk_curves(
+        mokk_path,
+        "4pct",
+        policies={
+            "digraphs-collapsed": naive_letter_count,
+            "letters": hungarian_letter_count,
+        },
     )
-    digraphs = digraph_curve(mokk_path)
+    letters_policy = {"letters": hungarian_letter_count}
+    stratum_8 = mokk_curves(mokk_path, "8pct", policies=letters_policy)
+    stratum_full = mokk_curves(mokk_path, "full", policies=letters_policy)
+    no_asterisk = mokk_curves(
+        mokk_path,
+        "4pct",
+        keep_asterisk=False,
+        label="mokk-4pct-asterisk-dropped",
+        policies=letters_policy,
+    )
+    hun_letters = leipzig_letters_curve(DATA_DIR / LEIPZIG_HUN)
+
+    every = {**primary_set, **stratum_8, **stratum_full, **no_asterisk}
+    primary = every["mokk-4pct"]
+    letters = every["mokk-4pct-letters"]
+
+    # The letter-policy panel. Separate from `curves` because it is evidence for
+    # a different recommendation: `hu` is calibrated on characters, and mixing
+    # the panels would let each cite the other's support.
+    letter_curves = {
+        label: curve for label, curve in every.items() if label.endswith("-letters")
+    }
+    letter_curves[hun_letters.label] = hun_letters
 
     curves = {
-        c.label: c
-        for c in (
-            primary,
-            stratum_8,
-            stratum_full,
-            hun_curve,
-            swe_curve,
-            no_asterisk,
-            digraphs,
-        )
+        label: curve
+        for label, curve in every.items()
+        if not label.endswith("-letters") or label == "mokk-4pct-letters"
     }
-    print_table(list(curves.values()))
+    curves[hun_curve.label] = hun_curve
+    curves[swe_curve.label] = swe_curve
+
+    print_table(list(curves.values()) + [hun_letters])
     check_anchors(curves, smoke=args.smoke_test)
 
     match = match_threshold(primary, swe_curve, reference_threshold=REFERENCE_THRESHOLD)
+    letters_match = match_threshold(
+        letters, swe_curve, reference_threshold=REFERENCE_THRESHOLD
+    )
     log(
         "match",
         f"threshold={match.threshold} bracket={match.bracket} "
@@ -235,12 +351,29 @@ def main() -> None:
     }
     for label, threshold in sorted(agreement.items()):
         log("agree", f"{label:<32} → {threshold}")
+    letters_agreement = {
+        label: match_threshold(
+            curve, swe_curve, reference_threshold=REFERENCE_THRESHOLD
+        ).threshold
+        for label, curve in letter_curves.items()
+    }
+    for label, threshold in sorted(letters_agreement.items()):
+        log("agree", f"{label:<32} → {threshold}")
+    log(
+        "letters",
+        f"{LETTER_LANGUAGE}: threshold={letters_match.threshold} "
+        f"bracket={letters_match.bracket} "
+        f"target={fmt_share(letters_match.target_share)} "
+        f"residual={letters_match.residual:.4f}",
+    )
 
     generated = datetime.now(tz=UTC).isoformat(timespec="seconds")
     record = _build_record(
         match=match,
-        curves=curves,
+        letters_match=letters_match,
+        curves={**curves, **letter_curves},
         agreement=agreement,
+        letters_agreement=letters_agreement,
         primary_source=mokk_name,
         swe_meta=swe_meta,
         hun_meta=hun_meta,
@@ -263,8 +396,10 @@ def main() -> None:
 def _build_record(
     *,
     match,  # noqa: ANN001 - ThresholdMatch
+    letters_match,  # noqa: ANN001 - ThresholdMatch, under the letter policy
     curves: dict[str, LengthCurve],
     agreement: dict[str, int],
+    letters_agreement: dict[str, int],
     primary_source: str,
     swe_meta: dict[str, str],
     hun_meta: dict[str, str],
@@ -275,14 +410,16 @@ def _build_record(
     manifest_path = DATA_DIR / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated": generated,
         "saphes_version": saphes.__version__,
         "smoke_run": smoke,
         "method": {
             "weighting": "token",
             "min_frequency": MIN_FREQUENCY,
-            "length_policy": "nfc",
+            # Deliberately absent: the record now holds curves under three
+            # length policies, so a single global value would be wrong for two
+            # of them. The truth is per-curve, in curves[label]["length_policy"].
             "capitalisation_marker": "strip-trailing-asterisk-then-merge",
             "equipercentile_reference_threshold": REFERENCE_THRESHOLD,
             "stratum": "4pct",
@@ -320,21 +457,41 @@ def _build_record(
             }
             for label, c in curves.items()
         },
-        "recommendation": {
-            "language": LANGUAGE,
-            "long_word_threshold": match.threshold,
-            "bracket": list(match.bracket),
-            "matched_share": round(match.target_share, 6),
-            "reference_share": round(match.reference_share, 6),
-            "reference_id": "leipzig-swe_news_2022_1M",
-            "reference_threshold": match.reference_threshold,
-            "residual": round(match.residual, 6),
-            "runner_up": match.runner_up,
-            "runner_up_residual": round(match.runner_up_residual, 6),
-            "is_boundary": match.is_boundary,
-            "agreement": dict(sorted(agreement.items())),
-        },
+        "recommendations": [
+            _recommendation(LANGUAGE, match, dict(sorted(agreement.items())), CAVEATS),
+            # The same equipercentile match, remeasured under the letter policy,
+            # with its own agreement panel measured under that policy too. The
+            # two panels are kept apart so neither record cites the other's
+            # support.
+            _recommendation(
+                LETTER_LANGUAGE,
+                letters_match,
+                dict(sorted(letters_agreement.items())),
+                LETTER_CAVEATS,
+            ),
+        ],
         "caveats": list(CAVEATS),
+    }
+
+
+def _recommendation(  # noqa: ANN001
+    language: str, match, agreement: dict[str, int], caveats: tuple[str, ...]
+) -> dict:
+    """One calibration record, for one language-and-policy key."""
+    return {
+        "caveats": list(caveats),
+        "language": language,
+        "long_word_threshold": match.threshold,
+        "bracket": list(match.bracket),
+        "matched_share": round(match.target_share, 6),
+        "reference_share": round(match.reference_share, 6),
+        "reference_id": "leipzig-swe_news_2022_1M",
+        "reference_threshold": match.reference_threshold,
+        "residual": round(match.residual, 6),
+        "runner_up": match.runner_up,
+        "runner_up_residual": round(match.runner_up_residual, 6),
+        "is_boundary": match.is_boundary,
+        "agreement": agreement,
     }
 
 
@@ -357,16 +514,21 @@ def _wrapped_literal(text: str, indent: str, width: int = 84) -> list[str]:
 
 def _write_literal(record: dict) -> None:
     """Regenerate the Python literal the package ships."""
-    rec = record["recommendation"]
     lines = [
         '"""Calibrated LIX long-word thresholds.',
         "",
-        "GENERATED by experiments/lix_calibration/scripts/run.py — do not edit by hand.",
+        "GENERATED by experiments/lix_calibration/scripts/run.py"
+        " — do not edit by hand.",
         "",
         "The data lives inline as a Python literal so it is always importable in",
         "doctests with no package-data machinery, matching the rest of",
         "``saphes.datasets``. The full provenance record, including every curve, is",
         "at experiments/lix_calibration/results/lix_calibration.json.",
+        "",
+        "Keys name a language *and a length policy*: ``hu`` is calibrated for the",
+        "default character count, ``hu-letters`` for the Hungarian letter count in",
+        "``saphes.hungarian``. They are not interchangeable — the threshold happens",
+        "to agree, but the matched share behind it does not.",
         '"""',
         "",
         "from __future__ import annotations",
@@ -379,34 +541,32 @@ def _write_literal(record: dict) -> None:
         "# A heterogeneous provenance record: ints, floats, strings and tuples of",
         "# pairs. Typed as Any rather than a TypedDict because it is generated.",
         "CALIBRATIONS: dict[str, dict[str, Any]] = {",
-        f"    {rec['language']!r}: {{",
-        f"        \"threshold\": {rec['long_word_threshold']},",
-        f"        \"bracket\": {tuple(rec['bracket'])!r},",
-        f"        \"matched_share\": {rec['matched_share']!r},",
-        f"        \"reference_share\": {rec['reference_share']!r},",
-        f"        \"reference_id\": {rec['reference_id']!r},",
-        f"        \"reference_threshold\": {rec['reference_threshold']},",
-        f"        \"residual\": {rec['residual']!r},",
-        f"        \"runner_up\": {rec['runner_up']},",
-        f"        \"runner_up_residual\": {rec['runner_up_residual']!r},",
-        f"        \"is_boundary\": {rec['is_boundary']},",
-        "        \"agreement\": (",
     ]
-    for label, threshold in rec["agreement"].items():
-        lines.append(f"            ({label!r}, {threshold}),")
-    lines += [
-        "        ),",
-        "        \"sources\": (",
-    ]
-    for source in record["sources"].values():
-        lines.append(f"            {source['id']!r},")
-    lines += [
-        "        ),",
-        "        \"caveats\": (",
-    ]
-    for caveat in record["caveats"]:
-        lines += _wrapped_literal(caveat, "            ")
-    lines += ["        ),", "    },", "}", ""]
+    for rec in record["recommendations"]:
+        lines += [
+            f"    {rec['language']!r}: {{",
+            f'        "threshold": {rec["long_word_threshold"]},',
+            f'        "bracket": {tuple(rec["bracket"])!r},',
+            f'        "matched_share": {rec["matched_share"]!r},',
+            f'        "reference_share": {rec["reference_share"]!r},',
+            f'        "reference_id": {rec["reference_id"]!r},',
+            f'        "reference_threshold": {rec["reference_threshold"]},',
+            f'        "residual": {rec["residual"]!r},',
+            f'        "runner_up": {rec["runner_up"]},',
+            f'        "runner_up_residual": {rec["runner_up_residual"]!r},',
+            f'        "is_boundary": {rec["is_boundary"]},',
+            '        "agreement": (',
+        ]
+        for label, threshold in rec["agreement"].items():
+            lines.append(f"            ({label!r}, {threshold}),")
+        lines += ["        ),", '        "sources": (']
+        for source in record["sources"].values():
+            lines.append(f"            {source['id']!r},")
+        lines += ["        ),", '        "caveats": (']
+        for caveat in rec["caveats"]:
+            lines += _wrapped_literal(caveat, "            ")
+        lines += ["        ),", "    },"]
+    lines += ["}", ""]
 
     PACKAGE_LITERAL.write_text("\n".join(lines))
     # Format the generated file, so re-running the generator reproduces the
@@ -431,7 +591,7 @@ def _write_findings(
     generated: str,
 ) -> None:
     """Write findings.md, the human-readable writeup."""
-    rec = record["recommendation"]
+    rec = record["recommendations"][0]
     swe = curves["leipzig-swe"]
 
     header = [
@@ -444,7 +604,8 @@ def _write_findings(
         "",
         "## 1. Headline result",
         "",
-        f"**Recommended Hungarian `long_word_threshold`: {rec['long_word_threshold']}**  ",
+        "**Recommended Hungarian `long_word_threshold`: "
+        f"{rec['long_word_threshold']}**  ",
         f"Bracket: {tuple(rec['bracket'])}  ",
         f"Matched share: {fmt_share(rec['matched_share'])} against a Swedish "
         f"reference of {fmt_share(rec['reference_share'])} at threshold "
@@ -514,6 +675,12 @@ def _write_findings(
         "|---|---:|",
     ]
     agree += [f"| `{label}` | {t} |" for label, t in sorted(agreement.items())]
+    agree += [
+        "",
+        "These are the character-policy curves — the panel behind `hu`. The "
+        "letter policy has its own panel, in section 5, measured under that "
+        "policy rather than borrowed from this one.",
+    ]
 
     sensitivity = [
         "",
@@ -533,11 +700,19 @@ def _write_findings(
         "threshold. This is the single highest-consequence line in the reader.",
         "",
         "**Digraphs.** Hungarian `cs, dz, gy, ly, ny, sz, ty, zs, dzs` are single "
-        "letters, so a character count is not a letter count. "
-        "`mokk-4pct-digraphs-collapsed` recomputes on letters. It is a sensitivity "
-        "check, not better ground truth: collapsing mis-fires at morpheme "
-        "boundaries, where `község` is `köz` + `ség` and its `zs` is not the "
-        "digraph. Character counting stays the default, as in Björnsson's original.",
+        "letters, so a character count is not a letter count, and two rows "
+        "recompute on letters. `mokk-4pct-digraphs-collapsed` is the naive "
+        "version — replace each digraph with its first character — kept because "
+        "it is what earlier releases shipped. It over-merges twice over: the "
+        "replacement cascades, so `vízszint` comes out at six letters when it is "
+        "seven, and it mis-fires at morpheme boundaries, where `község` is `köz` "
+        "+ `ség` and its `zs` is not the digraph at all. `mokk-4pct-letters` is "
+        "the scanner in `saphes.hungarian`, which fixes both. The two differ by "
+        "about 0.01 percentage points, which is the whole measured cost of "
+        "knowing where morpheme boundaries are, and neither moves the threshold. "
+        "Character counting stays the default for `lix`, as in Björnsson's "
+        "original; the letter policy ships its own calibration under "
+        "`hu-letters` (section 5).",
         "",
         "**Independent corpus.** `leipzig-hun` is a different corpus entirely — 2022 "
         "news rather than a 2003 web crawl, built by a different project with a "
@@ -546,10 +721,63 @@ def _write_findings(
         "artifact of the Webcorpus.",
     ]
 
-    caveats = ["", "---", "", "## 5. Caveats", ""]
+    letters_rec = record["recommendations"][1]
+    letters = [
+        "",
+        "---",
+        "",
+        "## 5. The same match, on letters",
+        "",
+        "A threshold is calibrated against a way of counting letters, so the "
+        "letter policy gets a calibration of its own rather than borrowing the "
+        "character one. The Swedish reference is unchanged: Swedish has no "
+        "multi-character letters, so its character count already is a letter "
+        "count.",
+        "",
+        f"**`{letters_rec['language']}` "
+        f"`long_word_threshold`: {letters_rec['long_word_threshold']}**  ",
+        f"Bracket: {tuple(letters_rec['bracket'])}  ",
+        f"Matched share: {fmt_share(letters_rec['matched_share'])} against the "
+        f"Swedish {fmt_share(letters_rec['reference_share'])} at "
+        f"{letters_rec['reference_threshold']}  ",
+        f"Residual: {letters_rec['residual']:.4f}  ",
+        f"Runner-up: {letters_rec['runner_up']} "
+        f"(residual {letters_rec['runner_up_residual']:.4f})",
+        "",
+        "Same threshold as `hu`, different share behind it. That is the point of "
+        "shipping both keys: pairing a threshold with the wrong length policy "
+        "measures something neither calibration measured.",
+        "",
+        "| curve | threshold |",
+        "|---|---:|",
+    ]
+    letters += [
+        f"| `{label}` | {t} |" for label, t in sorted(letters_rec["agreement"].items())
+    ]
+    chosen = list(letters_rec["agreement"].values())
+    winner = letters_rec["long_word_threshold"]
+    agreeing = chosen.count(winner)
+    if agreeing == len(chosen):
+        verdict = (
+            f"All {len(chosen)} curves choose {winner}, as the character "
+            "policy's panel does."
+        )
+    else:
+        others = sorted(set(chosen) - {winner})
+        verdict = (
+            f"{agreeing} of {len(chosen)} curves choose {winner}; the rest "
+            f"choose {others}. That is weaker support than the character "
+            "policy's panel in section 3, and it is recorded rather than "
+            "borrowed from it. The winning residual is nonetheless the smaller "
+            "of the two, so the disagreement is between curves rather than "
+            "within the primary one — read the bracket, not just the winner."
+        )
+    letters += ["", verdict]
+
+    caveats = ["", "---", "", "## 6. Caveats", ""]
     caveats += [f"- {c}" for c in record["caveats"]]
 
-    sources = ["", "---", "", "## 6. Sources and citations", ""]
+    sources = ["", "---", "", "## 7. Sources and citations", ""]
     for key, source in record["sources"].items():
         sources.append(f"**{key}** — `{source['id']}` (`{source['file']}`)")
         dl = source.get("download") or {}
@@ -565,7 +793,7 @@ def _write_findings(
     reproduce = [
         "---",
         "",
-        "## 7. Reproducing",
+        "## 8. Reproducing",
         "",
         "```bash",
         "uv run python experiments/lix_calibration/scripts/download_data.py",
@@ -580,7 +808,16 @@ def _write_findings(
 
     path = EXPERIMENT_DIR / "findings.md"
     path.write_text(
-        "\n".join(header + table + agree + sensitivity + caveats + sources + reproduce)
+        "\n".join(
+            header
+            + table
+            + agree
+            + sensitivity
+            + letters
+            + caveats
+            + sources
+            + reproduce
+        )
     )
     log("write", f"{path.stat().st_size:,} bytes → {path}")
 
