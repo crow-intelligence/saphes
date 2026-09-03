@@ -1,5 +1,5 @@
 # Findings: LIX threshold calibration for Hungarian
-Generated: 2026-08-29T17:10:18+00:00  
+Generated: 2026-09-03T13:07:57+00:00  
 Primary source: web2.2-freq-sorted.txt.gz  
 saphes version: 0.1.0
 
@@ -24,7 +24,7 @@ Token-weighted share of running words strictly longer than each threshold.
 
 | curve | >4 | >5 | >6 | >7 | >8 | >9 | >10 | >11 | >12 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `leipzig-hun` | 62.24% | 51.87% | 41.68% | 31.92% | 23.43% | 16.34% | 10.84% | 6.82% | 4.02% |
+| `leipzig-hun` | 62.24% | 51.87% | 41.68% | 31.92% | 23.43% | 16.34% | 10.84% | 6.81% | 4.02% |
 | `leipzig-hun-letters` | 60.42% | 49.16% | 38.40% | 29.43% | 20.68% | 14.01% | 8.87% | 5.32% | 3.00% |
 | `leipzig-swe` | 46.98% | 35.37% | 25.65% | 18.60% | 13.00% | 8.78% | 5.97% | 3.90% | 2.70% |
 | `mokk-4pct` | 64.00% | 53.98% | 44.52% | 35.38% | 27.33% | 19.83% | 13.85% | 9.16% | 5.79% |
