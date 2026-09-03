@@ -33,7 +33,24 @@ class TestDependencyFreedom:
         code = (
             "import sys, saphes;"
             "loaded = {m.split('.')[0] for m in sys.modules};"
-            "heavy = loaded & {'nltk', 'numpy', 'spacy', 'pandas', 'textstat'};"
+            "heavy = loaded & {'nltk', 'numpy', 'spacy', 'pandas', 'textstat',"
+            " 'snowballstemmer'};"
+            "assert not heavy, heavy"
+        )
+        subprocess.run([sys.executable, "-c", code], check=True)
+
+    def test_importing_the_optional_modules_pulls_in_nothing_either(self) -> None:
+        """saphes.stem must not import snowballstemmer until it is called.
+
+        The lazy import belongs to the function, not the module. mkdocstrings
+        imports every module while building the docs, and that CI job syncs
+        only the docs extra — a module-scope import would fail the build there
+        rather than here.
+        """
+        code = (
+            "import sys, saphes.stem, saphes.hungarian;"
+            "loaded = {m.split('.')[0] for m in sys.modules};"
+            "heavy = loaded & {'nltk', 'snowballstemmer'};"
             "assert not heavy, heavy"
         )
         subprocess.run([sys.executable, "-c", code], check=True)

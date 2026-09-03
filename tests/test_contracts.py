@@ -12,7 +12,7 @@ asymmetry tests here are what fail.
 import pytest
 from hypothesis import given, settings
 
-from saphes import lexical_diversity, lix, word_length
+from saphes import hungarian_stems, lexical_diversity, lix, word_length
 from saphes.datasets import Sample, load_english, load_greek, load_hungarian
 from tests.strategies import inflected_pairs
 
@@ -105,11 +105,49 @@ class TestAsymmetry:
         wrong = lix(sample.lemmas, sentences=3)
         assert wrong.score < correct.score
 
+    def test_stem_ttr_is_lower_than_surface_ttr(self) -> None:
+        """A theorem, given a margin. Stemming merges types and adds none.
+
+        Pinned as a floor rather than ``<=`` for the same reason as the lemma
+        gap above: a stemmer that silently stopped stemming would return the
+        surface stream unchanged and a bare ``<=`` would still pass.
+        """
+        sample = load_hungarian()
+        forms = list(sample.forms)
+        surface = lexical_diversity(forms, unit="surface", case_fold=True).ttr
+        stem = lexical_diversity(hungarian_stems(forms), unit="stem").ttr
+        assert surface - stem >= 0.05
+
+    def test_lemma_ttr_is_lower_than_stem_ttr(self) -> None:
+        """MEASURED, not a theorem. Do not read this as a property of stemming.
+
+        Neither map refines the other. Snowball under-stems (``kutya`` and
+        ``kutyák`` reach different stems though they share a lemma, pushing
+        stem-TTR up) and over-stems (``fánál`` becomes ``fá``, merging what a
+        lemmatiser keeps apart, pushing it down). Which wins is an empirical
+        fact about this stemmer on this sample, and it is pinned so that a
+        Snowball upgrade that changes it is visible.
+
+        If this fails, read the stemmer's diff. Do not relax it to a bare ``>``.
+        """
+        sample = load_hungarian()
+        stem = lexical_diversity(hungarian_stems(sample.forms), unit="stem").ttr
+        lemma = lexical_diversity(sample.lemmas, unit="lemma", case_fold=True).ttr
+        assert stem - lemma >= 0.05
+
+    def test_lix_on_stems_understates_the_score(self) -> None:
+        """Stemming destroys the length signal, exactly as lemmatising does."""
+        sample = load_hungarian()
+        correct = lix(sample.forms, sentences=3)
+        wrong = lix(hungarian_stems(sample.forms), sentences=3)
+        assert wrong.score < correct.score
+
     @pytest.mark.parametrize("sample", INFLECTED, ids=lambda s: s.language)
     def test_every_result_records_its_unit(self, sample: Sample) -> None:
         """So a serialised table can always say which stream produced each number."""
         assert lix(sample.forms, sentences=3).unit == "surface"
         assert lexical_diversity(sample.lemmas, unit="lemma").unit == "lemma"
+        assert lexical_diversity(sample.forms, unit="stem").unit == "stem"
 
 
 class TestContractProperties:
@@ -132,6 +170,17 @@ class TestContractProperties:
         lemma = lexical_diversity(lemmas, unit="lemma").ttr
         # `<=` not `<`: every suffix may have been drawn empty.
         assert lemma <= surface + 1e-12
+
+    @settings(max_examples=200, deadline=None)
+    @given(inflected_pairs())
+    def test_stem_ttr_never_exceeds_surface_ttr(
+        self, pairs: list[tuple[str, str]]
+    ) -> None:
+        """The same theorem as for lemmas: stemming merges types, never splits."""
+        forms = [form for form, _ in pairs]
+        surface = lexical_diversity(forms, unit="surface").ttr
+        stem = lexical_diversity(hungarian_stems(forms), unit="stem").ttr
+        assert stem <= surface + 1e-12
 
     @settings(max_examples=200, deadline=None)
     @given(inflected_pairs())

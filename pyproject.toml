@@ -66,6 +66,9 @@ docs = [
     "mkdocs-material",
     "mkdocstrings[python]",
 ]
+snowball = [
+    "snowballstemmer>=2.2",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]

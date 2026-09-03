@@ -313,6 +313,9 @@ class LixResult:
     long_words: int
     long_word_threshold: int
     length_policy: str
+    # Deliberately not TokenUnit. LIX has exactly one legal stream, and pinning
+    # the literal here is what stops a future "harmonisation" from letting a
+    # lemma or stem stream reach lix() unremarked. Do not widen it.
     unit: Literal["surface"]
     sentence_source: SentenceSource
     sentencer: str | None
@@ -416,7 +419,7 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
         Silences:
 
         - A missing ``__qualname__`` is masked by the ``getattr`` default at
-          readability.py:430,
+          readability.py:433,
           falling back to ``repr``. Callables without a qualname —
           ``functools.partial``, a class instance with ``__call__``, a
           builtin — therefore record something like

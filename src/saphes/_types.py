@@ -11,13 +11,20 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Literal, TypeAlias
 
-TokenUnit: TypeAlias = Literal["lemma", "surface"]
-"""What a token stream *is*: lemmas, or surface (inflected) forms.
+TokenUnit: TypeAlias = Literal["lemma", "surface", "stem"]
+"""What a token stream *is*: lemmas, surface (inflected) forms, or stems.
 
 ``lexical_diversity`` wants ``"lemma"`` — surface variation is morphology, not
 vocabulary. ``lix`` requires ``"surface"`` — word length is the signal, and
 lemmatising erases it. See the module docstrings for why they must not share a
 token stream.
+
+``"stem"`` is the algorithmic fallback for callers with no lemmatiser, produced
+by :func:`saphes.stem.hungarian_stems`. It is a *third* stream and not a cheaper
+spelling of ``"lemma"``: a stemmer both over- and under-merges, so a stem-based
+result is comparable only to another from the same stemmer. It has its own
+member precisely so that no result object can report a stem count as a lemma
+count.
 """
 
 LengthPolicy: TypeAlias = Literal["nfc", "graphemes", "codepoints"]

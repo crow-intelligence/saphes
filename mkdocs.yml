@@ -64,6 +64,7 @@ nav:
           - how-to/compare-different-lengths.md
           - how-to/plug-in-a-sentence-splitter.md
           - how-to/count-letters-not-characters.md
+          - how-to/stem-without-a-lemmatiser.md
       - Thresholds:
           - how-to/use-a-calibrated-threshold.md
           - how-to/calibrate-a-new-language.md
@@ -79,6 +80,7 @@ nav:
           - reference/calibration.md
           - reference/segment.md
           - reference/hungarian.md
+          - reference/stem.md
           - reference/datasets.md
       - Data:
           - reference/lix-bands.md
@@ -86,6 +88,7 @@ nav:
           - reference/glossary.md
   - Explanation:
       - explanation/two-token-streams.md
+      - explanation/stemming-is-not-lemmatisation.md
       - explanation/why-the-threshold-moves.md
       - explanation/why-implementations-disagree.md
       - explanation/what-gets-recorded.md
