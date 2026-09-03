@@ -80,9 +80,21 @@ The full corpus yields exactly one such word above the frequency floor:
 
 ## What was decided
 
-121 candidates, 70 accepted, 51 rejected, covered by 38 shipped seams — one seam
+121 candidates, 72 accepted, 49 rejected, covered by 38 shipped seams — one seam
 covers a whole paradigm, since matching is by substring, so `alvás-zavar` also
 fixes `alvászavarok`, `alvászavarnak` and `alvászavarral`.
+
+**A seam only covers what extends it rightward, so it must stop before anything
+that can alternate.** Hungarian lengthens a stem-final low vowel under
+suffixation — `zene` becomes `zené`, `zóna` becomes `zóná` — and that happens
+*inside* the key, where substring matching cannot follow. A seam spelled
+`fúvós-zene` misses `fúvószenét` entirely and counts it one letter short, in
+silence. Two candidates were rejected on that basis before it was understood
+(`fúvószenét`, 53; `zöldzónában`, 71), both from families whose every other
+member was accepted. The seams are now truncated to the shortest span that still
+covers the junction: `fúvós-zen`, `vonós-zen`, `zöld-zón`, and `víz-sug` from
+the start. When adding an entry, check it against an inflected form of the
+*second* element, not only against a longer compound.
 
 Precision is low by construction, which is the reason for the review step. The
 rejected classes, all of which are real digraphs the detector could not see:

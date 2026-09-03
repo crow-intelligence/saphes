@@ -14,8 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   taking the longest letter available rather than rewriting the string, reads doubled
   spellings (`ssz`, `ggy`, `ddzs`) as two letters, handles the productive `-ság`/`-ség`
   suffix by rule, and carries a table of 38 attested compound seams mined from the
-  Webcorpus. Both the boundary table and the suffix rule are parameters, because both
-  change the number.
+  Webcorpus. Seams are stored as the shortest substring spanning the junction, so one
+  entry covers a paradigm — and so a stem-final vowel that lengthens under suffixation
+  (`zene` → `zené`) cannot walk out of the key. Both the boundary table and the suffix
+  rule are parameters, because both change the number.
 - `saphes.stem.hungarian_stems` — optional Snowball stemming behind a new `snowball` extra,
   for callers with no lemmatiser. Pure Python, no transitive dependencies, no model
   download. Refuses a raw string, and case-folds by default because the algorithm silently

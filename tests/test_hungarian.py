@@ -143,6 +143,31 @@ class TestBoundaries:
         table = {"házsor": "ház-sor"}
         assert hungarian_letter_count("házsorokban", boundaries=table) == 11
 
+    def test_a_key_reaching_past_the_seam_misses_an_alternating_stem(self) -> None:
+        """Why the shipped keys stop at the junction rather than at a word.
+
+        Substring matching only covers forms that extend the key rightward, and
+        Hungarian lengthens a stem-final low vowel under suffixation. A key
+        spelled `fúvószene` therefore does not appear in `fúvószenét` at all,
+        and the sz is read as one letter. Pinned on both spellings so the
+        failure is visible rather than inferred.
+        """
+        reaches_past = {"fúvószene": "fúvós-zene"}
+        assert hungarian_letter_count("fúvószenét", boundaries=reaches_past) == 9
+        stops_at_seam = {"fúvószen": "fúvós-zen"}
+        assert hungarian_letter_count("fúvószenét", boundaries=stops_at_seam) == 10
+
+    def test_shipped_table_covers_the_lengthened_forms(self) -> None:
+        """The two corpus-attested forms this class had counted short.
+
+        `fúvószenét` (53 tokens) and `zöldzónában` (71) were both curated as
+        rejects while every other member of their family was accepted — the
+        seam was real, the key just did not reach them.
+        """
+        assert hungarian_letter_count("fúvószenét") == 10
+        assert hungarian_letter_count("zöldzónában") == 11
+        assert hungarian_letter_count("vonószenét") == 10
+
     def test_unlisted_compound_is_silently_short(self) -> None:
         """The residual failure. vadzab is vad + zab, six letters.
 
