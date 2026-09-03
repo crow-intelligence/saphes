@@ -13,6 +13,24 @@ letter count.
 
 ```
 
+It scans left to right taking the longest letter available, so doubled spellings come out as
+two letters and the `dzs` trigraph as one:
+
+```pycon
+>>> hungarian_letter_count("meggyes"), hungarian_letter_count("dzsungel")
+(6, 6)
+
+```
+
+It also knows where the productive `-ság`/`-ség` suffix puts a morpheme boundary, so the
+`zs` in `község` is correctly two letters and the `sz` in `egészség` is correctly one:
+
+```pycon
+>>> hungarian_letter_count("község"), hungarian_letter_count("egészség")
+(6, 7)
+
+```
+
 Pass it as a length policy:
 
 ```pycon
@@ -62,18 +80,49 @@ TypeError: '>' not supported between instances of 'str' and 'int'
 
 If you see that `TypeError` from `lix`, your length policy is the thing to check.
 
-**Collapsing digraphs is a sensitivity check, not ground truth.** It misfires wherever a
-digraph spans a morpheme boundary — `község` is `köz` + `ség`, so its `zs` is two letters,
-but the collapser cannot know that:
+**A compound outside the boundary table is counted one letter short, silently.** The counter
+knows a table of attested compound seams and a rule for the productive `-ság`/`-ség` suffix,
+so it gets `község` and `igazságos` right. It cannot know about a compound nobody listed:
 
 ```pycon
->>> hungarian_letter_count("község")   # the true count is 6
-5
+>>> hungarian_letter_count("község"), hungarian_letter_count("vadzab")
+(6, 5)
 
 ```
 
-This is why character counting stays the default, as in Björnsson's original. Use the letter
-count to check whether your conclusion survives the choice, not to replace it.
+`vadzab` is `vad` + `zab`, six letters. There is no error and no warning — just a number one
+too low. If your text is full of domain compounds, pass your own table:
+
+```pycon
+>>> hungarian_letter_count("vadzab", boundaries={"vadzab": "vad-zab"})
+6
+
+```
+
+**A hyphen is not a letter, and letters do not form across it.** This differs from
+`word_length`, which counts every character:
+
+```pycon
+>>> from saphes import word_length
+>>> word_length("gáz-számla"), hungarian_letter_count("gáz-számla")
+(10, 8)
+
+```
+
+**Character counting is still the default for `lix`,** as in Björnsson's original. The letter
+count is calibrated separately — see
+[Use a calibrated threshold](use-a-calibrated-threshold.md).
+
+## See the segmentation
+
+When a count looks wrong, ask for the letters rather than guessing:
+
+```pycon
+>>> from saphes import hungarian_letters
+>>> hungarian_letters("kulcsszó")
+['k', 'u', 'l', 'cs', 'sz', 'ó']
+
+```
 
 ## Related
 
@@ -81,3 +130,9 @@ count to check whether your conclusion survives the choice, not to replace it.
   the Unicode normalisation they apply.
 - [Calibrate a new language](calibrate-a-new-language.md) — `length_curve` takes the same
   policy, so you can calibrate on letters instead of characters.
+- [`saphes.hungarian` reference](../reference/hungarian.md) — the scan table, the boundary
+  table, and what each silences.
+
+The boundary table is not guesswork: it was mined from the MOKK Webcorpus and reviewed by
+hand. The candidates, the verdicts on each, and what the corpus can and cannot establish are
+in `experiments/hungarian_boundaries/` in the repository.
