@@ -93,7 +93,7 @@ Each seam adds exactly one letter to the count:
 | `szürkészöld` | `szürkés-zöld` | 193 | 9 → 10 |
 | `smaragdzöld` | `smaragd-zöld` | 155 | 10 → 11 |
 | `haragoszöld` | `haragos-zöld` | 102 | 10 → 11 |
-| `zöldzóna` | `zöld-zóna` | 262 | 7 → 8 |
+| `zöldzón` | `zöld-zón` | 262 | 7 → 8 |
 | `leveszöldség` | `leves-zöldség` | 51 | 11 → 12 |
 | `nyílászár` | `nyílás-zár` | 862 | 7 → 8 |
 | `évadzár` | `évad-zár` | 389 | 6 → 7 |
@@ -111,15 +111,21 @@ Each seam adds exactly one letter to the count:
 | `nehézsors` | `nehéz-sors` | 63 | 8 → 9 |
 | `táncsport` | `tánc-sport` | 140 | 8 → 9 |
 | `táncstúdió` | `tánc-stúdió` | 69 | 9 → 10 |
-| `fúvószene` | `fúvós-zene` | 1,102 | 8 → 9 |
-| `vonószene` | `vonós-zene` | 130 | 8 → 9 |
+| `fúvószen` | `fúvós-zen` | 1,102 | 8 → 9 |
+| `vonószen` | `vonós-zen` | 130 | 8 → 9 |
 | `kiszombor` | `kis-zombor` | 190 | 8 → 9 |
 
 Ones I would look at first: `kiszombor` (a toponym, kept only because attested),
 `ritmuszavar` (chosen over listing `szívritmuszavar` separately, since substring matching
-covers both), `vízsug` and `fúvószene` (fragments rather than words — deliberate, so they
+covers both), `vízsug` and `fúvószen` (fragments rather than words — deliberate, so they
 cover the paradigm, and unlike the `vízsu`/`földzó` I rejected they are backed by attested
 forms).
+
+A seam must stop before anything that can alternate, because substring matching only follows
+the key rightward. `fúvós-zene` looks like the tidier entry and is the wrong one: Hungarian
+lengthens the stem-final vowel, so `zene` becomes `zené` and the key misses `fúvószenét`
+entirely. `fúvószenét` (53) and `zöldzónában` (71) were curated as rejects on that basis
+before it was understood, and both are now accepted.
 
 Rejects I read as **real** digraphs, not seams: `mozsár`, `bizsereg`, `macsó`, `rácsokat`
 (`rács` + `okat`, not `rác` + `sokat`), `leszen`, `estélyen`, `versenyes`, and the `-szám`

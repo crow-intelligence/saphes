@@ -129,7 +129,7 @@ MORPHEME_BOUNDARIES: Mapping[str, str] = {
     "szürkészöld": "szürkés-zöld",  # freq: 193
     "smaragdzöld": "smaragd-zöld",  # freq: 155
     "haragoszöld": "haragos-zöld",  # freq: 102
-    "zöldzóna": "zöld-zóna",  # freq: 262
+    "zöldzón": "zöld-zón",  # freq: 262, covers zöldzónában/zöldzónát
     "leveszöldség": "leves-zöldség",  # freq: 51
     # Compounds in `-zár`, `-zászló`, `-záradék`, after a stem-final s or d.
     "nyílászár": "nyílás-zár",  # freq: 862, covers nyílászáró
@@ -150,8 +150,8 @@ MORPHEME_BOUNDARIES: Mapping[str, str] = {
     "táncsport": "tánc-sport",  # freq: 140
     "táncstúdió": "tánc-stúdió",  # freq: 69
     # Compounds in `-zene`, after a stem-final s.
-    "fúvószene": "fúvós-zene",  # freq: 1102, covers fúvószenekar
-    "vonószene": "vonós-zene",  # freq: 130
+    "fúvószen": "fúvós-zen",  # freq: 1102, covers fúvószenekar/fúvószenét
+    "vonószen": "vonós-zen",  # freq: 130, covers vonószenekar/vonószenét
     # A toponym, kis + Zombor.
     "kiszombor": "kis-zombor",  # freq: 190
 }
@@ -160,6 +160,14 @@ MORPHEME_BOUNDARIES: Mapping[str, str] = {
 Keys are substrings; each maps to itself with a boundary marker inserted at the
 seam. Applied by plain substring replacement, so an entry also covers the
 inflected forms built on it — ``házsor`` covers ``házsorok``.
+
+**A key must stop before anything that can alternate.** Substring matching only
+covers forms that extend the key *rightward*, and Hungarian lengthens a
+stem-final low vowel under suffixation: ``zene`` becomes ``zené``, ``zóna``
+becomes ``zóná``. A key spelled ``fúvószene`` therefore misses ``fúvószenét``
+entirely and counts it one letter short, silently. Hence ``fúvószen``,
+``vonószen``, ``zöldzón`` and ``vízsug`` — each truncated to the shortest span
+that still covers the seam.
 
 Entries are compounds only. The productive ``-ság``/``-ség`` suffix is handled
 by rule instead, because a list of instances would be endless: the corpus has
