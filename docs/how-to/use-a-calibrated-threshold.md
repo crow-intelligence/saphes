@@ -120,6 +120,18 @@ True
 
 ```
 
-If you want one anyway, ask for it deliberately with `interpret_lix(result.score)` — and
-read [Why the threshold moves](../explanation/why-the-threshold-moves.md) first, because the
-label will be on the wrong scale.
+Ask the recommendation instead. It knows the threshold and the length policy, so it can apply
+the bands that were mapped for that combination:
+
+```pycon
+>>> hu.interpret(result.score)
+'very easy'
+
+```
+
+Do not reach for `interpret_lix(result.score)`: that applies Björnsson's Swedish boundaries to
+a score that is not on his scale.
+
+Above the `standard` band the mapping returns `None` rather than guessing, because the Swedish
+reference has too little hard text to place the top boundary. See
+[LIX bands](../reference/lix-bands.md).

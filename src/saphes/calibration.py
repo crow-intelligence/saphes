@@ -43,7 +43,7 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 
 import saphes
-from saphes._types import LengthFn, LengthPolicy
+from saphes._types import LengthFn, LengthPolicy, LixBand
 from saphes.readability import word_length
 
 __all__ = [
@@ -650,6 +650,94 @@ class ThresholdRecommendation:
         """Return the threshold, so the object can be used where an int is."""
         return self.threshold
 
+    def interpret(self, score: float) -> LixBand | None:
+        """Label a LIX score measured under this calibration.
+
+        ``LixResult.band`` returns ``None`` away from Björnsson's 6, because the
+        labels were fitted to Swedish prose at that threshold. This is the
+        opt-in replacement: the same labels carried across by equipercentile
+        mapping, so a band still holds the share of running text it held in
+        Swedish.
+
+        Reach for it through the recommendation object rather than through
+        ``lix``, because the label depends on the threshold *and* the length
+        policy, and this object knows both. ``lix`` still takes no
+        ``language=``.
+
+        Args:
+            score: A LIX score measured at ``self.threshold`` under this key's
+                length policy. Nothing checks that it was.
+
+        Returns:
+            The band label, or ``None`` where the mapping runs out of evidence —
+            see below.
+
+        Raises:
+            KeyError: If no band mapping has been measured for this key.
+
+        Contract:
+            Preconditions:
+
+            - ``score`` must come from a measurement at ``self.threshold`` and
+              under the matching length policy. Passing a score from another
+              threshold returns a **confident, wrong label** — there is no way
+              to detect it from a bare float.
+
+            Guarantees:
+
+            - Pure and offline; the mapping ships with the package.
+            - Monotone: a higher score never returns an easier band.
+
+            Silences:
+
+            - Returns ``None`` above the highest boundary the reference corpus
+              could place, rather than guessing. Swedish news puts about 0.04%
+              of its text above LIX 60, so the ``difficult``/``very difficult``
+              boundary rests on a handful of windows and is not published. A
+              score in that range is genuinely hard text; how hard is not
+              something this study can say.
+            - The mapping preserves *how much text falls in each band*. It
+              carries across no judgement about how hard Hungarian readers find
+              those texts, because none was measured.
+
+        Examples:
+            Hungarian news measures 42.11 under this calibration — ordinary
+            prose, squarely in the middle band:
+
+            >>> hu = recommended_threshold("hu-letters")
+            >>> hu.interpret(42.11)
+            'standard'
+            >>> hu.interpret(35.0)
+            'easy'
+
+            The same number means different things under the two calibrations,
+            which is the whole reason the keys name a length policy:
+
+            >>> recommended_threshold("hu").interpret(42.11)
+            'easy'
+
+            Above the last placeable boundary it declines to guess. A score of
+            50 is harder than ordinary news — but whether that is `difficult` or
+            `very difficult` is a distinction the Swedish reference has too
+            little text to support, so ``None`` is the honest answer:
+
+            >>> hu.interpret(50.0) is None
+            True
+        """
+        from saphes.datasets._lix_bands import BANDS
+
+        if self.language not in BANDS:
+            msg = (
+                f"no band mapping for {self.language!r}; mapped keys: "
+                f"{', '.join(sorted(BANDS))}"
+            )
+            raise KeyError(msg)
+        entry = BANDS[self.language]
+        for boundary, label, *_ in entry["bands"][: entry["resolvable"]]:
+            if score < boundary:
+                return label
+        return None
+
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serialisable dict of the recommendation.
 
@@ -772,7 +860,7 @@ def recommended_threshold(language: str) -> ThresholdRecommendation:
         - Depends on ``saphes.datasets._lix_calibration``, which is
           **generated** by ``experiments/lix_calibration/scripts/run.py``
           and imported lazily at
-          calibration.py:782.
+          calibration.py:870.
           Nothing verifies that the shipped literal matches the committed
           JSON it was produced from, and nothing can — the corpora are not
           distributed. A hand-edit to that module would be invisible here;
@@ -823,7 +911,7 @@ def _policy_label(policy: LengthPolicy | LengthFn) -> str:
         Silences:
 
         - A missing ``__qualname__`` falls back to ``repr`` at
-          calibration.py:832,
+          calibration.py:920,
           so the recorded ``LengthCurve.length_policy`` can embed an address
           and differ between processes.
     """
