@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-GENERATED = "2026-08-29T17:10:18+00:00"
+GENERATED = "2026-09-03T13:07:57+00:00"
 SCHEMA_VERSION = 2
 
 # A heterogeneous provenance record: ints, floats, strings and tuples of

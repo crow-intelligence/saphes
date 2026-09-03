@@ -390,7 +390,14 @@ def main() -> None:
         log("write", "Smoke run: not regenerating the shipped literal or findings.md")
     else:
         _write_literal(record)
-        _write_findings(record, curves, match, agreement, generated)
+        # Both panels, because section 2 only *describes* the curves. The
+        # separation that matters is in the agreement panels above, where
+        # citing the other policy's support would be circular; a shared share
+        # table cannot be. Passing `curves` alone silently dropped four
+        # letter-policy rows from the writeup the hu-letters match rests on.
+        _write_findings(
+            record, {**curves, **letter_curves}, match, agreement, generated
+        )
 
 
 def _build_record(
@@ -649,7 +656,7 @@ def _write_findings(
         "| curve | " + " | ".join(f">{t}" for t in REPORT_RANGE) + " |",
         "|---|" + "---:|" * len(REPORT_RANGE),
     ]
-    for label, curve in curves.items():
+    for label, curve in sorted(curves.items()):
         cells = " | ".join(fmt_share(curve.share_above(t)) for t in REPORT_RANGE)
         table.append(f"| `{label}` | {cells} |")
     table += [
@@ -657,7 +664,7 @@ def _write_findings(
         "| curve | tokens | types | mean length |",
         "|---|---:|---:|---:|",
     ]
-    for label, curve in curves.items():
+    for label, curve in sorted(curves.items()):
         table.append(
             f"| `{label}` | {curve.tokens:,} | {curve.types:,} | "
             f"{curve.mean_length:.3f} |"
@@ -778,7 +785,7 @@ def _write_findings(
     caveats += [f"- {c}" for c in record["caveats"]]
 
     sources = ["", "---", "", "## 7. Sources and citations", ""]
-    for key, source in record["sources"].items():
+    for key, source in sorted(record["sources"].items()):
         sources.append(f"**{key}** — `{source['id']}` (`{source['file']}`)")
         dl = source.get("download") or {}
         if dl:
