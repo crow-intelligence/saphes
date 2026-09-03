@@ -41,6 +41,7 @@ from saphes.readability import (  # noqa: E402 - __version__ must precede these
     word_length,
 )
 from saphes.segment import sentences, words  # noqa: E402 - as above
+from saphes.stem import hungarian_stems  # noqa: E402 - as above
 
 __all__ = [
     "LIX_BANDS",
@@ -50,6 +51,7 @@ __all__ = [
     "__version__",
     "hungarian_letter_count",
     "hungarian_letters",
+    "hungarian_stems",
     "interpret_lix",
     "lexical_diversity",
     "lix",

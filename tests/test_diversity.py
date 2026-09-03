@@ -37,7 +37,7 @@ class TestUnit:
             lexical_diversity(["a", "b"])  # type: ignore[call-arg]
 
     def test_unit_is_validated(self) -> None:
-        with pytest.raises(ValueError, match="must be 'lemma' or 'surface'"):
+        with pytest.raises(ValueError, match="must be 'lemma', 'surface' or 'stem'"):
             lexical_diversity(["a", "b"], unit="token")  # type: ignore[arg-type]
 
     def test_unit_is_recorded(self) -> None:

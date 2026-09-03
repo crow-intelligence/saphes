@@ -49,7 +49,7 @@ __all__ = [
     "ttr_from_counts",
 ]
 
-_VALID_UNITS = frozenset(("lemma", "surface"))
+_VALID_UNITS = frozenset(("lemma", "surface", "stem"))
 
 
 def ttr_from_counts(*, types: int, tokens: int) -> float:
@@ -206,8 +206,9 @@ class DiversityResult:
         ttr: The type-token ratio, ``types / tokens``.
         types: The number of distinct types counted.
         tokens: The number of tokens counted.
-        unit: ``"lemma"`` or ``"surface"`` — what the token stream was declared
-            to be. Always recorded, because it changes what the number means.
+        unit: ``"lemma"``, ``"surface"`` or ``"stem"`` — what the token stream
+            was declared to be. Always recorded, because it changes what the
+            number means.
         case_folded: Whether tokens were case-folded before counting types.
         token_source: ``"provided"`` if the caller passed tokens,
             ``"segmented"`` if saphes split them out of raw text.
@@ -280,9 +281,11 @@ def lexical_diversity(
         lemmas: A sequence of tokens — lemmas, for the reasons in the module
             docstring. A raw string is accepted only with ``unit="surface"``,
             since a string can only ever be split into surface forms.
-        unit: ``"lemma"`` or ``"surface"``. Required. ``"surface"`` is available
-            for teaching and for reproducing the raw NLTK-book number, but the
-            caller must ask for it deliberately, and the result records it.
+        unit: ``"lemma"``, ``"surface"`` or ``"stem"``. Required. ``"surface"``
+            is available for teaching and for reproducing the raw NLTK-book
+            number; ``"stem"`` is for output of :func:`saphes.stem.hungarian_stems`
+            and is not interchangeable with ``"lemma"``. The caller must ask for
+            each deliberately, and the result records which.
         case_fold: Case-fold tokens before counting types. Default ``False`` —
             lemmatisers vary on proper nouns, so this is the caller's call and
             saphes will not do it behind their back. Uses ``str.casefold()``,
@@ -377,7 +380,7 @@ def lexical_diversity(
         is the number that survives a length difference.
     """
     if unit not in _VALID_UNITS:
-        msg = f"unit must be 'lemma' or 'surface', got {unit!r}"
+        msg = f"unit must be 'lemma', 'surface' or 'stem', got {unit!r}"
         raise ValueError(msg)
     if window is not None and window <= 0:
         msg = f"window must be positive, got {window}"
@@ -386,11 +389,11 @@ def lexical_diversity(
     if isinstance(lemmas, str):
         if unit != "surface":
             msg = (
-                "lexical_diversity() got a raw string with unit='lemma'. A string "
-                "can only be split into surface forms; lemmas must come from "
-                "upstream analysis (huspacy, CLTK, a treebank). Pass "
-                "unit='surface' to measure surface diversity, or pass a sequence "
-                "of lemmas."
+                f"lexical_diversity() got a raw string with unit={unit!r}. A "
+                "string can only be split into surface forms; lemmas must come "
+                "from upstream analysis (huspacy, CLTK, a treebank) and stems "
+                "from saphes.stem. Pass unit='surface' to measure surface "
+                "diversity, or pass a sequence of lemmas."
             )
             raise TypeError(msg)
         tokens = segment.words(lemmas)
