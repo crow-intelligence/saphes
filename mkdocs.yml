@@ -60,6 +60,7 @@ nav:
       - Getting set up:
           - how-to/install.md
       - Measuring:
+          - how-to/measure-hungarian-text.md
           - how-to/supply-a-sentence-count.md
           - how-to/compare-different-lengths.md
           - how-to/plug-in-a-sentence-splitter.md

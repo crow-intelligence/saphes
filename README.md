@@ -35,7 +35,9 @@ Non-goal: becoming another kitchen-sink readability library.
 uv add saphes
 ```
 
-The core has **no dependencies** — plain Python and the standard library.
+The core has **no dependencies** — plain Python and the standard library. Two optional
+extras stay out of the core path: `saphes[snowball]` for Hungarian stemming and
+`saphes[punkt]` for the NLTK sentence splitter.
 
 ## Quickstart
 
@@ -55,6 +57,20 @@ lexical_diversity(lemmas, unit="lemma")
 lexical_diversity(lemmas, unit="lemma", window=100).mattr
 ```
 
+Hungarian needs three things English does not — a retuned threshold, a letter count, and a
+stand-in for a lemmatiser:
+
+```python
+from saphes import hungarian_letter_count, hungarian_stems, lix, recommended_threshold
+
+# `sz` is one letter, not two characters. The threshold is calibrated per policy.
+hu = recommended_threshold("hu-letters")          # 8, not Björnsson's Swedish 6
+lix(text, length_policy=hungarian_letter_count, long_word_threshold=int(hu))
+
+# No lemmatiser? Snowball is the fallback, declared as its own unit.
+lexical_diversity(hungarian_stems(tokens), unit="stem")
+```
+
 ## The data contract
 
 The two metrics require **opposite** token streams.
@@ -72,6 +88,11 @@ where it could only be wrong, and every result records what it measured.
 heavy — CLTK or a treebank for Greek, huspacy for Hungarian. The caller lemmatises; saphes
 measures.
 
+The one exception is optional and honest about itself: `saphes[snowball]` gives Hungarian
+Snowball stemming for callers with no lemmatiser. Its output is declared as `unit="stem"`, a
+third stream with its own name, because a stemmer both over- and under-merges and a
+stem-based number is comparable only to another from the same stemmer.
+
 ## Documentation
 
 [saphes.readthedocs.io](https://saphes.readthedocs.io), organised by
@@ -79,9 +100,9 @@ measures.
 
 - **[Tutorial](https://saphes.readthedocs.io/en/latest/tutorial/first-measurement/)** — new
   here? Measure your first text in about ten minutes, with nothing to download.
-- **[How-to guides](https://saphes.readthedocs.io/en/latest/how-to/install/)** — supply a
-  sentence count, compare texts of different lengths, calibrate a threshold, diagnose a
-  surprise.
+- **[How-to guides](https://saphes.readthedocs.io/en/latest/how-to/install/)** — measure
+  Hungarian text, supply a sentence count, count letters rather than characters, stem without
+  a lemmatiser, calibrate a threshold.
 - **[Reference](https://saphes.readthedocs.io/en/latest/reference/)** — every function, its
   contract and its failure modes, plus the calibration data.
 - **[Explanation](https://saphes.readthedocs.io/en/latest/explanation/two-token-streams/)** —
@@ -97,6 +118,9 @@ Every code block in the docs is executed by CI, so nothing there can drift.
 - [x] RIX (long words per sentence)
 - [x] Empirically calibrated per-language thresholds, from token-weighted word-length
       distributions — Hungarian ships as `recommended_threshold("hu")`
+- [x] Phonotactically aware Hungarian letter counting — `sz` is one letter, `ssz` is two, and
+      morpheme boundaries are handled by rule plus an attested table
+- [x] Optional Snowball stemming for callers with no lemmatiser, as a declared third unit
 - [ ] The same study for Ancient Greek, for the Homer project
 - [ ] POS-filtered diversity, once lemmas carry tags
 - [ ] MTLD, HD-D, vocd-D, Maas

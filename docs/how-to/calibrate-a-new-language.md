@@ -104,6 +104,25 @@ forget the weights, but it cannot stop you passing the wrong ones.
 `min_frequency`, or you are comparing different statistics. Nothing checks this; both values
 are recorded on each curve so the mismatch is at least auditable afterwards.
 
+## Calibrating on letters instead of characters
+
+`length_curve` takes the same `length_policy` as `lix`, so an orthography-aware count needs
+no special support — pass the callable:
+
+```pycon
+>>> from saphes import hungarian_letter_count
+>>> counts = {"ország": 200, "megvizsgálták": 40, "ház": 300}
+>>> letters = length_curve(counts, label="mine-letters", min_frequency=1,
+...                        length_policy=hungarian_letter_count)
+>>> letters.length_policy
+'custom:hungarian_letter_count'
+
+```
+
+The threshold that comes out belongs to that policy and to no other. This is exactly why the
+shipped table has two Hungarian keys, `hu` and `hu-letters`: same threshold, different share
+behind it. Keep the pairing together wherever you record the result.
+
 ## Related
 
 - [Reproduce the calibration study](reproduce-the-calibration.md) — the full Hungarian
@@ -112,3 +131,5 @@ are recorded on each curve so the mismatch is at least auditable afterwards.
   threshold came from.
 - [Why the threshold moves](../explanation/why-the-threshold-moves.md) — the reasoning
   behind equipercentile matching.
+- [Count letters rather than characters](count-letters-not-characters.md) — the shipped
+  Hungarian length policy.

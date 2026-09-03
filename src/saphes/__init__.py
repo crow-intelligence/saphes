@@ -8,6 +8,20 @@ variation is morphology rather than vocabulary.
 :func:`~saphes.readability.lix` requires surface forms, because word length is
 its signal and lemmatising erases it. Feed one stream to both and exactly one of
 them is silently wrong.
+
+Three parameters that other implementations hardcode are exposed here, because
+each of them changes the answer:
+
+- **The long-word threshold.** Björnsson's 6 is Swedish. Hungarian ships
+  calibrated at 8 — see :func:`~saphes.calibration.recommended_threshold`.
+- **What counts as a letter.** ``sz`` is one Hungarian letter, not two
+  characters — see :mod:`saphes.hungarian`.
+- **What a token stream is.** ``"lemma"``, ``"surface"`` or ``"stem"``, declared
+  by the caller and recorded on every result.
+
+The core has no runtime dependencies. Stemming (:mod:`saphes.stem`) and the
+Punkt sentence splitter are optional extras, imported lazily and never on the
+core path.
 """
 
 from importlib.metadata import PackageNotFoundError, version

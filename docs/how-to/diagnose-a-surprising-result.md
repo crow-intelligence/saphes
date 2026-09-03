@@ -14,8 +14,9 @@ did not expect, start at the bottom.
 
 ```
 
-Use `unit="lemma"` if they are lemmas, `unit="surface"` if they are words as written. The
-choice changes the answer, which is why it has no default.
+Use `unit="lemma"` if they are lemmas, `unit="surface"` if they are words as written, and
+`unit="stem"` for the output of `hungarian_stems`. The choice changes the answer, which is
+why it has no default.
 
 ## `TypeError: ... got a raw string with unit='lemma'`
 
@@ -54,8 +55,37 @@ ValueError: window must be positive, got 0
 
 ## `KeyError: "no calibration for ..."`
 
-That language has no shipped threshold. Pass one explicitly, or produce it with
-[Calibrate a new language](calibrate-a-new-language.md).
+That key has no shipped threshold. The message lists the ones that do. Note the keys name a
+length policy as well as a language: `hu` is calibrated for the default character count,
+`hu-letters` for `hungarian_letter_count`. Otherwise pass a threshold explicitly, or produce
+one with [Calibrate a new language](calibrate-a-new-language.md).
+
+## `ImportError: hungarian_stems() needs snowballstemmer`
+
+The `snowball` extra is not installed. `saphes` never imports it until you call the function:
+
+```bash
+uv add 'saphes[snowball]'
+```
+
+See [Install saphes](install.md).
+
+## A Hungarian word count is one letter short
+
+`hungarian_letter_count` knows a table of attested compound seams and a rule for the
+productive `-ság`/`-ség` suffix. A compound outside the table has its seam read as a digraph,
+silently. Ask for the segmentation rather than guessing:
+
+```pycon
+>>> from saphes import hungarian_letters, hungarian_letter_count
+>>> hungarian_letters("vadzab")          # vad + zab is six letters
+['v', 'a', 'dz', 'a', 'b']
+>>> hungarian_letter_count("vadzab", boundaries={"vadzab": "vad-zab"})
+6
+
+```
+
+See [Count letters rather than characters](count-letters-not-characters.md).
 
 ## `LookupError` about a missing NLTK resource
 

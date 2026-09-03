@@ -8,6 +8,10 @@ and that feeding them the same input produces no error at all.
 | `lexical_diversity` | **lemmas** | Surface variation is noise — it measures morphology, not vocabulary. |
 | `lix` | **surface forms** | Word length *is* the signal, and lemmatising erases it. |
 
+There is a third value, `unit="stem"`, for callers with no lemmatiser. It is a *degraded
+substitute* for the lemma stream rather than a third contract — see
+[Stemming is not lemmatisation](stemming-is-not-lemmatisation.md).
+
 ## Why diversity wants lemmas
 
 Type–token ratio counts distinct words. But "distinct" is doing a lot of work: Hungarian
@@ -51,6 +55,12 @@ Greek, huspacy or emtsv for Hungarian. Bundling one would wreck a deliberately t
 and duplicate work already done upstream, better, by people who specialise in it. The caller
 lemmatises; saphes measures.
 
+The optional Snowball stemmer is the deliberate exception, and it does not breach the
+principle, because it does not claim to have lemmatised. It is a few hundred lines of suffix
+stripping with no lexicon, it lives behind an extra, and its output is declared as
+`unit="stem"` — a third stream with its own name, rather than a lemma stream that happens to
+be wrong.
+
 ## What stops the mistake
 
 Four guards, none of which inspects the data:
@@ -82,6 +92,13 @@ The regression test that guards this is not a sample but a proof. Lemmatisation 
 on tokens, so it can only merge types, never split them. With the token count held equal, the
 lemma stream can therefore never have more types than the surface stream, and never the
 higher TTR.
+
+**The theorem does not extend to stems.** Stemming is a function on tokens too, so
+stem-TTR ≤ surface-TTR for the same reason. But a stemmer is not a coarsening of a
+lemmatiser: it both over-merges and under-merges, and it can give one lemma two different
+stems. So nothing follows about how a stem-TTR compares to a lemma-TTR — that ordering is a
+measurement, not a proof. See
+[Stemming is not lemmatisation](stemming-is-not-lemmatisation.md).
 
 That is why the property test asserts `<=` rather than `<`: every suffix in a generated draw
 may have come out empty, in which case the two streams are identical and the ratio is equal.

@@ -46,8 +46,8 @@ can be checked rather than trusted.
 
 - **[How-to guides](how-to/install.md)**
 
-    You know what you want. Supply a sentence count, compare texts of different lengths,
-    calibrate a threshold, diagnose a surprise.
+    You know what you want. Measure Hungarian text, supply a sentence count, count letters
+    rather than characters, stem without a lemmatiser, calibrate a threshold.
 
 - **[Reference](reference/index.md)**
 
@@ -71,6 +71,16 @@ The two metrics require **opposite** token streams.
 
 Feed the same list to both and exactly one is silently wrong — no error, no NaN, just a
 plausible number. See [The two token streams](explanation/two-token-streams.md).
+
+If you have no lemmatiser, `unit="stem"` is a third, degraded stream — see
+[Stemming is not lemmatisation](explanation/stemming-is-not-lemmatisation.md). It is declared
+as its own unit rather than passed off as a lemma, so a result always says which it measured.
+
+## Working in Hungarian
+
+saphes is built for languages Björnsson never fitted LIX to. Hungarian gets a calibrated
+threshold, a letter count that knows `sz` is one letter, and a stemmer for when no lemmatiser
+is available — start at [Measure Hungarian text](how-to/measure-hungarian-text.md).
 
 ---
 
