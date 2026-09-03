@@ -22,6 +22,14 @@ match to floating-point exactness — that equality is asserted as a test in the
 
 Every divergence is the sentence count.
 
+That holds for English, where a letter is a character and nobody has to decide otherwise. It
+stops holding the moment the orthography has multi-character letters. *C* then depends on a
+second choice nobody documents either — what counts as a letter. `len("ország")` is 6;
+Hungarian has five letters there. Two implementations agreeing on the sentence count can
+still disagree on *C*, and neither will say so. saphes makes that choice a parameter,
+`length_policy`, and records it on the result alongside the threshold. See
+[Count letters rather than characters](../how-to/count-letters-not-characters.md).
+
 ## What textstat does differently
 
 `textstat.sentence_count` splits on `\b[^.!?]+[.!?]*` and then **discards any sentence of two

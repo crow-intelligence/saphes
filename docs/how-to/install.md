@@ -4,7 +4,26 @@
 uv add saphes
 ```
 
-The core has no runtime dependencies — plain Python and the standard library.
+The core has no runtime dependencies — plain Python and the standard library. Everything
+heavy is an extra, and nothing in the core imports one.
+
+| Extra | Pulls in | Enables |
+|---|---|---|
+| `punkt` | NLTK | `sentences(text, punkt=True)` |
+| `snowball` | `snowballstemmer` | `hungarian_stems(tokens)` and `unit="stem"` |
+
+## With the Snowball stemmer
+
+Needed only for `hungarian_stems`, the fallback for callers with no lemmatiser.
+
+```bash
+uv add 'saphes[snowball]'
+```
+
+`snowballstemmer` is pure Python with no dependencies of its own, and it downloads nothing at
+run time. Without it, `hungarian_stems` raises an `ImportError` naming this command — it is
+never imported until you call the function. See
+[Stem when you have no lemmatiser](stem-without-a-lemmatiser.md).
 
 ## With the NLTK Punkt sentence splitter
 

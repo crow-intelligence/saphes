@@ -18,8 +18,24 @@ same *share* of running words that the reference threshold selects in another. W
 **Lemma** — the dictionary form of a word. `houses`, `housing` and `housed` share the lemma
 `house`. The stream `lexical_diversity` wants.
 
+**Stem** — what an algorithmic suffix-stripper leaves behind. Not a lemma and usually not a
+word: Snowball Hungarian turns `fánál` into `fá` and `adtam` into `adt`. Available as
+`unit="stem"`, and comparable only to another stem count from the same stemmer. See
+[Stemming is not lemmatisation](../explanation/stemming-is-not-lemmatisation.md).
+
 **Length policy** — how a word's letters are counted. Defaults to `"nfc"`: normalise to NFC,
-then count code points. See `word_length` in the [readability reference](readability.md).
+then count code points. Any callable works, and `hungarian_letter_count` is the one that
+ships. See `word_length` in the [readability reference](readability.md).
+
+**Digraph** — a letter written with two characters. Hungarian has `cs dz gy ly ny sz ty zs`,
+plus the trigraph `dzs`. A character count is therefore not a letter count.
+
+**Geminate** — a doubled letter, written short: long `sz` is spelled `ssz`, not `szsz`. Two
+letters, three characters.
+
+**Morpheme boundary** — the seam in a compound or derived word. It matters here because a
+seam can put `z` next to `s` without them being the letter `zs`: `község` is `köz` + `ség`.
+See [Count letters rather than characters](../how-to/count-letters-not-characters.md).
 
 **LIX** — *Läsbarhetsindex*, Björnsson's readability index: `A/B + 100·C/A`.
 
@@ -53,6 +69,6 @@ is **not** comparable between texts of different lengths.
 **Type-weighted** — counting each distinct word once, regardless of frequency. The most
 likely silent error in a calibration study.
 
-**Unit** — whether a token stream is `"lemma"` or `"surface"`. Required on
+**Unit** — whether a token stream is `"lemma"`, `"surface"` or `"stem"`. Required on
 `lexical_diversity`, recorded on every result. See
 [The two token streams](../explanation/two-token-streams.md).

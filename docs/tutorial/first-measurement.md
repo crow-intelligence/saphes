@@ -196,6 +196,12 @@ The second number is not an error. It is what happens when you measure word leng
 throwing the word endings away. Nothing warned you, because nothing could: both numbers are
 perfectly plausible.
 
+The bundled sample comes with its lemmas already attached. Your own Hungarian text will not,
+and saphes does not lemmatise. If you have no lemmatiser, the `snowball` extra gives you a
+stemmer — a degraded substitute with its own unit, so a result can never claim to be
+something it is not. See
+[Measure Hungarian text](../how-to/measure-hungarian-text.md).
+
 ## 8. Read the record
 
 Every result knows what it measured:
@@ -227,3 +233,5 @@ stream produced it.
   computed above is not comparable between texts of different sizes. This is how to fix that.
 - [Supply a sentence count](../how-to/supply-a-sentence-count.md) — for the common case where
   your pipeline has no sentence boundaries at all.
+- [Measure Hungarian text](../how-to/measure-hungarian-text.md) — the calibrated threshold,
+  the letter count and the stemmer, in one recipe.

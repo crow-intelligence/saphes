@@ -71,8 +71,12 @@ eight is simply not on the scale Björnsson fitted his labels to, so `LixResult.
 `None` there rather than hand out a Swedish label for a Hungarian number.
 
 This is structural rather than a warning in prose, on the principle that a docstring nobody
-reads is not a guard. `interpret_lix(score)` remains available for anyone who wants a label
-anyway — deliberately, and at the call site, where the decision is visible.
+reads is not a guard.
+
+The bands have since been earned back by the same argument one level up — see
+[What a Hungarian LIX score means](what-a-hungarian-lix-score-means.md). `LixResult.band`
+still returns `None`, because it knows the threshold but not the language; the mapped labels
+live on the recommendation object, which knows both.
 
 ## What a calibrated threshold is not
 
@@ -92,15 +96,31 @@ would show.
 Hungarian `cs, dz, gy, ly, ny, sz, ty, zs, dzs` are single letters, so a character count is
 not a letter count. It is tempting to conclude that the length policy should collapse them.
 
-The calibration recomputes on letters as a sensitivity check and still chooses eight. But
-collapsing is not straightforwardly *better*: it misfires wherever a digraph spans a morpheme
-boundary, so `község` — `köz` + `ség` — is counted as five letters when it is six. There is
-no way to know which is which without morphological analysis, which returns us to the
-dependency saphes declines to take.
+Two things stood in the way, and one of them has since been dealt with.
 
-So character counting stays the default, as in the original, and the letter count is offered
-as a way to check whether a conclusion survives the choice. That is the honest status of
-almost everything in this study: not a better number, but a known one.
+The first was that naive collapsing is not straightforwardly *better*. Replacing each digraph
+with its first character misfires wherever a digraph spans a morpheme boundary: `község` —
+`köz` + `ség` — came out as five letters when it is six. It also miscounts a case nobody had
+noticed, because the replacement cascades: turning `sz` into `s` after a `z` manufactures a
+`zs` that was not in the input, so `vízszint` came out as six letters when it is seven.
+
+`saphes.hungarian` fixes both. It scans rather than rewrites, which disposes of the cascade
+entirely, and it handles the productive `-ság`/`-ség` suffix by rule plus a table of attested
+compound seams, which disposes of `község` and its family. What it cannot do is know about a
+compound nobody listed, so `vadzab` is still counted short. The limitation did not go away;
+it got smaller and it got a boundary drawn round it.
+
+The second was whether any of it changes the answer. It does not, and that is now measured
+rather than assumed. Across the full 560-million-token stratum the boundary handling moves
+the corpus-level long-word share by 0.01 percentage points, and every letter-aware curve
+still chooses eight. There is also a reason it *could* not have moved much: a correct letter
+count is trapped between the naive collapse, which over-merges, and the raw character count,
+which under-merges — and both of those already picked eight.
+
+So character counting stays the default for `lix`, as in the original, and the letter count
+now ships with a calibration of its own, under `recommended_threshold("hu-letters")`. Same
+threshold, different share behind it. That is the honest status of almost everything in this
+study: not a better number, but a known one.
 
 ## See also
 

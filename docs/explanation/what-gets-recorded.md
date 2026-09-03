@@ -53,7 +53,7 @@ package much larger than two metrics deserve.
 
 The calibration study works this way too. `ThresholdRecommendation` does not return the
 number 8; it returns 8 together with the share it matched, the reference it matched against,
-the runner-up, and which of six independently computed curves agreed. That was not
+the runner-up, and which of seven independently computed curves agreed. That was not
 over-engineering: on a truncated sample the answer really was contested between 7 and 8, and
 a bare integer would have hidden it.
 

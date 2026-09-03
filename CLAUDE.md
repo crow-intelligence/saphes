@@ -24,8 +24,13 @@ the parameters other implementations hardcode. Fifth member of the corpus-lx fam
   `LIX_BANDS`, `LixResult`.
 - `diversity.py` — `lexical_diversity`, `ttr_from_counts`, `mattr`, `DiversityResult`.
 - `calibration.py` — `length_curve`, `match_threshold`, `recommended_threshold`,
-  `collapse_digraphs`, `hungarian_letter_count`. **Pure and data-free**, because
-  `--doctest-modules` runs everything under `src/` on a CI runner with no corpus.
+  `collapse_digraphs`. **Pure and data-free**, because `--doctest-modules` runs everything
+  under `src/` on a CI runner with no corpus.
+- `hungarian.py` — `hungarian_letters`, `hungarian_letter_count`, `HU_LETTERS`,
+  `MORPHEME_BOUNDARIES`, `BOUNDARY_EXCEPTIONS`. Separate from `calibration.py` precisely
+  because it carries data (the boundary table).
+- `stem.py` — `hungarian_stems`. Snowball behind the optional `snowball` extra, imported
+  lazily inside the function like `segment._punkt_sentences`.
 - `datasets/` — inline EN/HU/GRC samples with parallel `(form, lemma)` annotation, plus
   `_lix_calibration.py`, which is **generated** by the calibration study.
 
@@ -57,6 +62,13 @@ Related invariants, all deliberate:
   makes type-weighting — the calibration study's likeliest silent failure — impossible to
   express. Do not add a token-list convenience overload.
 - `lix` takes **no** `language=` parameter. The calibrated threshold is passed explicitly.
+- `LixResult.unit` is `Literal["surface"]` and deliberately **not** `TokenUnit`. Widening it
+  would let a lemma or stem stream reach `lix` unremarked.
+- `hungarian_letter_count` scans; it never rewrites. Rewriting is what made the old collapser
+  manufacture digraphs (`közszolgálati` → 11 letters, not 12). Do not "simplify" the scanner
+  back into a chain of `str.replace`.
+- `CALIBRATIONS` keys name a language **and a length policy**: `hu` is the character count,
+  `hu-letters` the Hungarian letter count. Same threshold, different matched share.
 
 ## The calibration study
 

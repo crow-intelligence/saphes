@@ -132,6 +132,8 @@ When a count looks wrong, ask for the letters rather than guessing:
   policy, so you can calibrate on letters instead of characters.
 - [`saphes.hungarian` reference](../reference/hungarian.md) — the scan table, the boundary
   table, and what each silences.
+- [Measure Hungarian text](measure-hungarian-text.md) — this, the calibrated threshold and the
+  stemmer in one recipe.
 
 The boundary table is not guesswork: it was mined from the MOKK Webcorpus and reviewed by
 hand. The candidates, the verdicts on each, and what the corpus can and cannot establish are
