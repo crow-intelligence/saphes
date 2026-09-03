@@ -1,5 +1,7 @@
 """Tests for the threshold calibration machinery."""
 
+from dataclasses import replace
+
 import pytest
 from hypothesis import given, settings
 
@@ -249,6 +251,58 @@ class TestRecommendedThreshold:
         import saphes
 
         assert saphes.__version__ not in repr(recommended_threshold("hu"))
+
+
+class TestBandInterpretation:
+    """The mapped bands, and the range the mapping refuses to cover."""
+
+    def test_ordinary_hungarian_news_is_standard(self) -> None:
+        """42.11 is what leipzig-hun-news measures under this calibration."""
+        assert recommended_threshold("hu-letters").interpret(42.11) == "standard"
+
+    def test_the_two_policies_disagree_on_the_same_score(self) -> None:
+        """Which is the point of keying the table by policy as well as language.
+
+        Pinned because a refactor that collapsed the two keys would make this
+        pass by making both labels identical, and nothing else would notice.
+        """
+        assert recommended_threshold("hu").interpret(42.11) == "easy"
+        assert recommended_threshold("hu-letters").interpret(42.11) == "standard"
+
+    def test_declines_above_the_last_placeable_boundary(self) -> None:
+        """The top boundary is not published, so the top range is not labelled.
+
+        Swedish news has almost no text above LIX 60, so that boundary rests on
+        a handful of windows. Anything above the standard band is "difficult or
+        harder", and the study cannot split those two.
+        """
+        assert recommended_threshold("hu-letters").interpret(50.0) is None
+        assert recommended_threshold("hu-letters").interpret(1000.0) is None
+
+    def test_monotone(self) -> None:
+        """A higher score never comes back easier."""
+        order = ["very easy", "easy", "standard"]
+        hu = recommended_threshold("hu-letters")
+        seen = [hu.interpret(s) for s in range(0, 49)]
+        ranks = [order.index(b) for b in seen if b is not None]
+        assert ranks == sorted(ranks)
+
+    def test_every_calibrated_key_has_a_mapping(self) -> None:
+        """If a key ships without one, interpret() must say so, not guess."""
+        from saphes.datasets._lix_bands import BANDS
+
+        for key in ("hu", "hu-letters"):
+            assert key in BANDS
+            assert BANDS[key]["resolvable"] >= 1
+
+    def test_unmapped_key_raises(self) -> None:
+        from saphes.datasets._lix_bands import BANDS
+
+        rec = recommended_threshold("hu")
+        forged = replace(rec, language="xx")
+        assert "xx" not in BANDS
+        with pytest.raises(KeyError, match="no band mapping"):
+            forged.interpret(42.0)
 
 
 class TestCalibrationProperties:

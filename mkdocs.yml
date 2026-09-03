@@ -90,5 +90,6 @@ nav:
       - explanation/two-token-streams.md
       - explanation/stemming-is-not-lemmatisation.md
       - explanation/why-the-threshold-moves.md
+      - explanation/what-a-hungarian-lix-score-means.md
       - explanation/why-implementations-disagree.md
       - explanation/what-gets-recorded.md
