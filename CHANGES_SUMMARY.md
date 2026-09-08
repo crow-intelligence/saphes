@@ -107,12 +107,18 @@ it — the frequency distribution is Zipfian, so a few hundred entries cover mos
 text, and `apply_decisions.py` reports what share of candidate token frequency the accepted
 set carries.
 
-**3. Does a CC BY-SA asset belong in an MIT repository?** Still open, and forced by the
-numbers: the CC0 option (Wikidata) yields **17** usable entries against Wiktionary's
-**2,492**. Note this survives the Bakos decision — Bakos supplies the *verdicts*, but the
-*candidate set* is still Wiktionary-derived. Options are in
-`experiments/loanwords/README.md`. Current state — no bundled lexicon, metric
-lexicon-agnostic — costs nothing to keep.
+**3. ~~Does a CC BY-SA asset belong in an MIT repository?~~ Resolved another way.** The
+shipped list is no longer Wiktionary-derived at all. `experiments/loanwords/results/idegenszavak.txt`
+holds **15,203 lemmas** selected by frequency rank from the MOKK Hungarian Webcorpus and
+*verified* against Bakos. The corpus chooses, the dictionary checks, and Bakos is not
+redistributed in whole or in part. Neither the scan nor the pipeline that reads it is in the
+repository, and a full-history sweep confirms neither ever was.
+
+The list is **not** inside `saphes.datasets`, and that is deliberate. Every other bundled
+dataset regenerates from a script in this repository; this one cannot, because its generator
+reads a copyrighted dictionary that is not here. A generated literal nobody can reproduce
+would be worse than a file loaded explicitly, so `loanword_ratio` stays lexicon-agnostic and
+`how-to/customise-the-loanword-lexicon.md` carries the one-line recipe.
 
 **4. Should `parse_source` record the annotation *scheme*?** It records the *format*
 (`conllu`/`spacy`). Whether preverbs attach to their verbs, Stanford vs content-head
