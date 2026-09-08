@@ -1,2 +1,9 @@
-mkdocs-material>=9.5
-mkdocstrings[python]>=0.24
+# Upper bounds are deliberate. Material for MkDocs is shipping a 2.0 that
+# removes the plugin system, rewrites theming and offers no migration path,
+# and MkDocs itself follows. Read the Docs installs this file unpinned on
+# every build, so without a ceiling the docs break on whatever released that
+# morning — and a failed RTD build leaves the previous site up, so the failure
+# is silent. Raise these deliberately, after building locally.
+mkdocs>=1.6,<2
+mkdocs-material>=9.5,<10
+mkdocstrings[python]>=0.24,<2
