@@ -31,17 +31,27 @@ first kind in bulk, and a ratio computed against it measures etymological origin
 rather than *idegenszó-arány*. Both are defensible numbers; they are not the
 same number, and the caller is the one who knows which was wanted.
 
-The optional heuristic is a **fallback, not a detector**, and its worst failures
-are ordinary Hungarian names. ``th`` survives in surnames as an archaic spelling
-of plain *t*, so *Tóth*, *Horváth*, *Németh* and *Kossuth* — among the commonest
-surnames in the country — all match, as do *Széchenyi* on ``ch`` and *Wesselényi*
-on ``w``. No spelling rule separates them from *thriller*.
+The optional heuristic is a **fallback, not a detector**, and two classes of
+Hungarian spelling look foreign without being so. Both are handled, and both
+were established from the MOKK Webcorpus rather than from memory.
 
-In practice that makes ``pos_tags`` close to mandatory whenever ``heuristic=True``
-on running Hungarian text: without it a page of names reports as a page of
-foreign words. Read ``matched_by_heuristic`` and ``pattern_counts`` rather than
-trusting ``ratio`` on its own, and drop ``th`` from ``patterns`` if your corpus
-is name-heavy.
+**Morpheme seams.** The potential suffix ``-hat``/``-het`` and the allative
+``-hoz``/``-hez``/``-höz`` put an ``h`` straight after a stem, so any stem
+ending in ``t``, ``p`` or ``c`` manufactures a digraph across the join:
+*látható*, *kapható*, *állathoz*, *táncház*. That is 1,187 word forms and 2.5
+million tokens of false positive, and it is productive, so no list could cover
+it. :data:`FOREIGN_PATTERNS` carries a negative lookahead instead.
+
+**Archaic surnames.** ``th`` spells a plain *t* in *Tóth*, *Horváth*, *Németh*
+and *Kossuth* — among the commonest surnames in the country. These are
+lexicalised, so they are listed in :data:`HEURISTIC_EXCEPTIONS` with their
+corpus frequencies, alongside native compounds like *mintha* and *otthon*.
+
+Together the two remove **16.5% of the tokens** the heuristic used to flag
+across the Webcorpus. What remains is a residual, not a solution: a surname
+outside the list is still flagged, so supply ``pos_tags`` where you can, and
+read ``matched_by_heuristic`` and ``pattern_counts`` rather than trusting
+``ratio`` on its own.
 """
 
 from __future__ import annotations
@@ -56,6 +66,7 @@ import saphes
 
 __all__ = [
     "FOREIGN_PATTERNS",
+    "HEURISTIC_EXCEPTIONS",
     "LoanwordResult",
     "loan_ratio_from_counts",
     "loanword_ratio",
@@ -71,9 +82,17 @@ FOREIGN_PATTERNS: Mapping[str, str] = {
     # Digraphs Hungarian spells otherwise. Native `f` replaces `ph` and native
     # `t` replaces `th`, so both survive only in unassimilated spellings —
     # `philosophia` became `filozófia`, `theológia` became `teológia`.
-    "ch": r"ch",
-    "ph": r"ph",
-    "th": r"th",
+    #
+    # The negative lookahead is load-bearing, not tidiness. Hungarian's
+    # potential suffix `-hat`/`-het` and its allative `-hoz`/`-hez`/`-höz` put
+    # an `h` directly after a stem, so any stem ending in `t`, `p` or `c`
+    # manufactures one of these digraphs across the seam: `lát` + `ható` reads
+    # as `th`, `kap` + `ható` as `ph`, `tánc` + `ház` as `ch`. Measured on the
+    # MOKK Webcorpus that is **1,187 word forms and 2.5 million tokens** of pure
+    # false positive, dwarfing every other error the heuristic makes.
+    "ch": r"ch(?!at|et|oz|ez|öz|áz)",
+    "ph": r"ph(?!at|et|oz|ez|öz|áz)",
+    "th": r"th(?!at|et|oz|ez|öz|áz)",
     # Word-initial clusters native Hungarian avoids. Anchored, because the same
     # letters occur freely across a morpheme boundary inside a compound.
     "initial-sztr": r"^sztr",
@@ -87,13 +106,87 @@ A **heuristic**, and a crude one. Each entry is named so that
 :attr:`LoanwordResult.pattern_counts` can report which fired, because a ratio
 that cannot be broken down is a ratio that cannot be checked.
 
-The false positives are systematic, not incidental. ``th`` matches *Tóth*,
-*Horváth*, *Németh* and *Kossuth*; ``ch`` matches *Széchenyi*; ``w`` matches
-*Wesselényi*. These are among the commonest surnames in Hungary, and no spelling
-rule can separate a foreign name from a foreign word — only ``pos_tags`` can.
+The three digraph patterns carry a negative lookahead so they do not fire
+across Hungarian's ``-hat``/``-het`` and ``-hoz``/``-hez``/``-höz`` seams; see
+:data:`HEURISTIC_EXCEPTIONS` for the lexicalised cases a rule cannot reach.
+
+What no spelling rule can do is separate a foreign *name* from a foreign
+*word*. The listed surnames are handled; an unlisted one is not, and only
+``pos_tags`` will catch it.
 
 Substitutable: pass your own mapping as ``patterns=``. The value changes the
 number, so it is a parameter rather than a constant.
+"""
+
+HEURISTIC_EXCEPTIONS: frozenset[str] = frozenset(
+    {
+        # Hungarian surnames in archaic orthography, where `th` spells plain
+        # `t` and `ch` plain `cs`/`k`. Frequencies are MOKK Webcorpus 2.2
+        # counts of the lower-cased form, so the list is attested rather than
+        # remembered. These are among the commonest surnames in the country:
+        # without them a page of Hungarian history reads as a page of foreign
+        # words.
+        "tóth",  # freq: 87,321
+        "horváth",  # freq: 79,589
+        "kossuth",  # freq: 62,854
+        "németh",  # freq: 58,127
+        "széchenyi",  # freq: 42,074
+        "madách",  # freq: 15,203
+        "batthyány",  # freq: 9,498
+        "mikszáth",  # freq: 9,362
+        "semmelweis",  # freq: 8,464
+        "széchényi",  # freq: 5,962
+        "wesselényi",  # freq: 5,052
+        "weöres",  # freq: 4,585
+        "báthory",  # freq: 4,515
+        "zichy",  # freq: 3,987
+        "lamperth",  # freq: 3,947
+        "thököly",  # freq: 3,725
+        "bernáth",  # freq: 3,233
+        "baráth",  # freq: 3,097
+        "pesuth",  # freq: 2,996
+        "báthori",  # freq: 2,621
+        "roth",  # freq: 2,407
+        "róth",  # freq: 2,260
+        "toth",  # freq: 1,692 — unaccented spelling, common in URLs and forms
+        "csáth",  # freq: 1,671
+        "horvath",  # freq: 1,557 — unaccented spelling
+        "donáth",  # freq: 1,485
+        "nemeth",  # freq: 739 — unaccented spelling
+        "werbőczy",  # freq: 639
+        "thaly",  # freq: 612
+        "cházár",  # freq: 452
+        "thúry",  # freq: 370
+        "passuth",  # freq: 296
+        "chorin",  # freq: 235
+        # Native compounds where an `h`-initial second element meets a stem
+        # ending in `t`. Lexicalised, so a rule cannot reach them, but closed
+        # and short. Matching is on lemmas, so `otthonában` and `otthonról`
+        # are covered by `otthon`.
+        "mintha",  # freq: 290,286 — mint + ha
+        "otthon",  # freq: 138,479 — ott + hon
+        "itthon",  # freq: 71,946 — itt + hon
+        "hátha",  # freq: 56,652 — hát + ha
+        "szentháromság",  # freq: 6,130 — szent + háromság
+        "kétharmad",  # freq: 1,719 — két + harmad
+    }
+)
+"""Lemmas the spelling heuristic must not flag, however they are spelled.
+
+Two classes, both established from the MOKK Webcorpus rather than from memory:
+**Hungarian surnames in archaic orthography**, where `th` spells a plain `t`,
+and **native compounds** in which an `h`-initial second element lands against a
+stem-final `t`.
+
+Note that `-gh` names — *Balogh*, *Végh*, *Országh*, *Virágh* — are **not**
+listed, and do not need to be: `gh` is not one of :data:`FOREIGN_PATTERNS`, so
+nothing flags them today. Adding a `gh` pattern would require adding them here
+in the same breath.
+
+Substitutable and extensible: pass ``exceptions=`` to
+:func:`loanword_ratio`. The list is bounded lexical judgement, not morphological
+analysis, and a surname outside it is still flagged — the failure moved, it did
+not go away.
 """
 
 _COMPILED = {name: re.compile(pattern) for name, pattern in FOREIGN_PATTERNS.items()}
@@ -169,6 +262,10 @@ class LoanwordResult:
         lexicon_id: Caller-supplied label for the lexicon. Provenance only.
         lexicon_size: Entries in the lexicon, or ``None`` if none was given.
         heuristic: Whether the spelling heuristic was enabled.
+        exceptions_applied: Lemmas the heuristic would have flagged but for
+            :data:`HEURISTIC_EXCEPTIONS`. A large count on Hungarian prose is
+            expected — ``Tóth`` and ``mintha`` are common — and a zero on a
+            corpus full of names means the exceptions are not reaching it.
         excluded: Lemmas skipped — proper nouns by tag, plus anything in
             ``exclude``. They are not in ``total_lemmas``.
         unit: Always ``"lemma"``. Surface forms hide the root, so this field is
@@ -187,6 +284,7 @@ class LoanwordResult:
     lexicon_id: str | None
     lexicon_size: int | None
     heuristic: bool
+    exceptions_applied: int
     excluded: int
     # Deliberately not TokenUnit. This metric has exactly one legal stream, and
     # pinning the literal is what stops a surface or stem stream reaching it
@@ -249,6 +347,7 @@ def loanword_ratio(
     pos_tags: Sequence[str] | None = None,
     exclude_tags: Container[str] = frozenset({"PROPN"}),
     exclude: Container[str] = frozenset(),
+    exceptions: Container[str] = HEURISTIC_EXCEPTIONS,
     case_fold: bool = True,
     lexicon_id: str | None = None,
 ) -> LoanwordResult:
@@ -270,6 +369,10 @@ def loanword_ratio(
         exclude_tags: Tags to skip when ``pos_tags`` is given. Defaults to
             ``{"PROPN"}``.
         exclude: Lemmas to skip outright, whatever their tag.
+        exceptions: Lemmas the **heuristic** must not flag, defaulting to
+            :data:`HEURISTIC_EXCEPTIONS`. It does not affect the lexicon: a
+            dictionary match is evidence, and an exception is only a statement
+            that a spelling is misleading. Pass ``frozenset()`` to disable.
         case_fold: Fold case before lookup. Defaults to ``True`` — the opposite
             of :func:`saphes.diversity.lexical_diversity`, and deliberately so:
             a lexicon is a list of dictionary forms, and matching it is the
@@ -337,16 +440,17 @@ def loanword_ratio(
         >>> spelled.pattern_counts
         (('absz', 1), ('x', 1))
 
-        A proper noun trips the same patterns, which is why tags matter:
+        Hungarian spellings that only look foreign are excepted by default —
+        the archaic surnames, and the seams where an ``-hat``/``-hoz`` suffix
+        lands an ``h`` against a stem-final ``t``:
 
-        >>> loanword_ratio(["Wesselényi"], heuristic=True).matched
+        >>> loanword_ratio(["Tóth", "látható"], heuristic=True, lexicon=set()).matched
+        0
+
+        An unlisted surname is still flagged, so tags remain worth supplying:
+
+        >>> loanword_ratio(["Wagnerné"], heuristic=True, lexicon=set()).matched
         1
-        >>> loanword_ratio(
-        ...     ["Wesselényi"], heuristic=True, pos_tags=["PROPN"], lexicon=set()
-        ... ).total_lemmas
-        Traceback (most recent call last):
-            ...
-        ValueError: every lemma was excluded; nothing was measured
 
         Surface forms are not refused, and that is the danger:
 
@@ -389,6 +493,7 @@ def loanword_ratio(
     by_lexicon = 0
     by_heuristic = 0
     hits: dict[str, int] = {}
+    spared = 0
     seen: list[str] = []
     seen_set: set[str] = set()
 
@@ -403,9 +508,11 @@ def loanword_ratio(
         total += 1
 
         in_lexicon = lexicon is not None and lemma in lexicon
+        if heuristic and lemma in exceptions:
+            spared += 1
         fired = (
             [name for name, rx in compiled.items() if rx.search(lemma)]
-            if heuristic
+            if heuristic and lemma not in exceptions
             else []
         )
         if not in_lexicon and not fired:
@@ -437,6 +544,7 @@ def loanword_ratio(
         lexicon_id=lexicon_id,
         lexicon_size=len(lexicon) if isinstance(lexicon, Sized) else None,
         heuristic=heuristic,
+        exceptions_applied=spared,
         excluded=excluded,
         unit="lemma",
         case_folded=case_fold,

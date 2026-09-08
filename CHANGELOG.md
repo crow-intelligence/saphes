@@ -24,6 +24,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   evidence and a guess from spelling are different things and are not summed into one
   unaccountable number.
 
+### Fixed — the heuristic's Hungarian false positives
+
+- **The digraph patterns no longer fire across a morpheme seam.** Hungarian's potential
+  suffix `-hat`/`-het` and its allative `-hoz`/`-hez`/`-höz` place an `h` directly after a
+  stem, so any stem ending in `t`, `p` or `c` manufactured a digraph at the join: *látható*
+  read as `th`, *kapható* as `ph`, *táncház* as `ch`. Measured on the MOKK Webcorpus that
+  was **1,187 word forms and 2.5 million tokens** of pure false positive — far more damage
+  than the surnames, and productive, so no list could ever have covered it. `ch`, `ph` and
+  `th` now carry a negative lookahead.
+
+- **`HEURISTIC_EXCEPTIONS`** holds what a rule cannot reach: 33 Hungarian surnames in
+  archaic orthography, where `th` spells a plain *t* (*Tóth* 87,321, *Horváth* 79,589,
+  *Kossuth* 62,854, *Németh* 58,127), and six lexicalised compounds where an `h`-initial
+  element meets a stem-final `t` (*mintha* 290,286, *otthon* 138,479, *itthon*, *hátha*,
+  *szentháromság*, *kétharmad*). Every entry carries its corpus frequency, so the list is
+  attested rather than remembered. `exceptions=` is a parameter.
+
+- Together these cut the tokens the heuristic flags across the Webcorpus by **16.5%** —
+  5.9 million fewer spurious hits per 1.78 billion tokens — while leaving *thriller*,
+  *technológia*, *pszichológia*, *abszolút* and *oxigén* flagged as before.
+
+- `LoanwordResult` gains **`exceptions_applied`**, counting lemmas the heuristic would have
+  flagged but for the exception list.
+
+- `-gh` surnames — *Balogh*, *Végh*, *Országh*, *Virágh* — need no exception and have none:
+  `gh` is not one of `FOREIGN_PATTERNS`, so nothing flagged them. A test pins that, so
+  adding a `gh` pattern later cannot silently reintroduce the problem.
+
 ### Notes on the loan-word ratio
 
 - **The metric needs lemmas, and a surface stream fails silently.** `komputerekkel` misses a

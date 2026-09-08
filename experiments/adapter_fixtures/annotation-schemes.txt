@@ -1,0 +1,149 @@
+WHY MDD DEPENDS ON THE PARSER, NOT JUST THE TEXT
+================================================================================
+An explainer for the open question: should `parse_source` record the annotation
+SCHEME as well as the FORMAT?
+
+Everything below is computed by saphes, not asserted. Reproduce it with
+    uv run python experiments/adapter_fixtures/scripts/annotation_schemes.py
+
+
+THE SHORT VERSION
+--------------------------------------------------------------------------------
+Mean dependency distance measures how far apart a word and its governor are.
+That depends on WHICH WORD IS THE GOVERNOR — and that is a decision made by the
+people who designed the treebank, not a fact about Hungarian.
+
+Two linguists can annotate the same sentence, both correctly, by two accepted
+conventions, and get MDD scores 22% apart. Nothing in the score says which
+convention was used.
+
+`parse_source` currently records "conllu" or "spacy". That is the FILE FORMAT.
+It says nothing about the scheme, and the scheme is what moves the number.
+
+
+EXAMPLE 1 — COORDINATION
+--------------------------------------------------------------------------------
+    "János és Mária tegnap moziba ment"
+    (János and Mária went to the cinema yesterday)
+
+The question: in "János és Mária", which of the three words is the head?
+
+  Scheme A — Stanford / Universal Dependencies: the FIRST CONJUNCT heads.
+  "és" and "Mária" both hang off "János"; "János" is the subject of "ment".
+
+      1. János   -> ment     distance 5
+      2. és      -> Mária    distance 1
+      3. Mária   -> János    distance 2
+      4. tegnap  -> ment     distance 2
+      5. moziba  -> ment     distance 1
+      6. ment    -> ROOT
+                            MDD = 11/5 = 2.200
+
+  Scheme B — Prague style: the CONJUNCTION heads.
+  Both names hang off "és"; "és" is the subject of "ment".
+
+      1. János   -> és       distance 1
+      2. és      -> ment     distance 4
+      3. Mária   -> és       distance 1
+      4. tegnap  -> ment     distance 2
+      5. moziba  -> ment     distance 1
+      6. ment    -> ROOT
+                            MDD = 9/5 = 1.800
+
+  >>> 2.200 against 1.800. Same sentence, same formula, 22% apart.
+
+Neither is wrong. Both conventions are used in published treebanks.
+
+
+EXAMPLE 2 — POSTPOSITIONS
+--------------------------------------------------------------------------------
+    "a fiú az asztal alatt aludt"
+    (the boy slept under the table)
+
+The question: in "az asztal alatt", does the noun head the phrase, or "alatt"?
+
+  Scheme A — UD: the NOUN heads, "alatt" is a `case` marker attached down to it.
+      ... asztal -> aludt   distance 2
+          alatt  -> asztal  distance 1
+                            MDD = 9/5 = 1.800
+
+  Scheme B — older style: the POSTPOSITION heads its own phrase.
+      ... asztal -> alatt   distance 1
+          alatt  -> aludt   distance 1
+                            MDD = 8/5 = 1.600
+
+  >>> 1.800 against 1.600, 12% apart.
+
+
+WE ALREADY SAW THIS FOR REAL
+--------------------------------------------------------------------------------
+This is not hypothetical. Over the same fifteen Hungarian sentences in
+`corpus.txt`, HuSpaCy and emtsv disagree:
+
+    engine     MDD      MHD    max tree depth
+    HuSpaCy    1.6845   1.5492   4
+    emtsv      1.5328   1.8128   6
+
+They INVERT: HuSpaCy gives the higher MDD and the LOWER MHD. HuSpaCy builds
+flatter trees with longer arcs; emtsv builds deeper trees with shorter ones.
+That is a difference between the two annotation schemes, not between the texts —
+the texts are identical.
+
+A concrete instance of the same thing: emtsv attaches sentence-final punctuation
+to 0, making it a second root. HuSpaCy attaches it to the main verb. So
+`require_single_root=True` discards EVERY emtsv sentence and NO HuSpaCy
+sentence, from the same fifteen inputs.
+
+
+WHY THIS MATTERS FOR PUBLISHED NUMBERS
+--------------------------------------------------------------------------------
+If you write "Hungarian parliamentary speech has MDD 2.4", that number is only
+comparable to another number produced under the same scheme. Compare across
+schemes and you may be measuring the annotation convention rather than the
+language.
+
+Futrell, Mahowald & Gibson (2015) hit exactly this in their 37-language study
+and dealt with it by NORMALISING the treebanks before measuring — they say so
+explicitly in their Methods:
+
+    "We normalize the corpora so that prepositional objects depend on their
+     prepositions (where the original corpus has a case relation) and verbs
+     depend on their complementizers (where the original corpus has a mark
+     relation). For conjunctions, we use Stanford style."
+
+That is precisely Example 1 and Example 2 above. They could normalise because
+they held the corpora. saphes never sees the corpus — it is handed a parse and
+measures it.
+
+
+THE ACTUAL QUESTION FOR YOU
+--------------------------------------------------------------------------------
+saphes cannot detect the scheme. It could, however, RECORD one, so that a result
+carries the information a reader needs.
+
+  Option 1 — do nothing.
+      `parse_source` stays "conllu" / "spacy". The scheme is a methods-section
+      problem for whoever publishes, not a library problem. Costs nothing.
+      Risk: two of your own projects compute Hungarian MDD with different
+      parsers and the results get put in one table.
+
+  Option 2 — add a free-text `scheme=` parameter, recorded on the result.
+      e.g. scheme="UD 2.x, Szeged Treebank conventions"
+      Cheap, unvalidated, and only as good as what the caller types. But it
+      makes the omission visible: a result with scheme=None is visibly
+      unlabelled rather than invisibly ambiguous.
+
+  Option 3 — Option 2, plus adapters filling in what they know.
+      `from_spacy` could record the model name, `from_conllu` could read the
+      `# newdoc` / treebank metadata that many CoNLL-U files carry.
+      More work, still not verification, but no typing for the common case.
+
+  Option 4 — normalise like Futrell.
+      Convert incoming parses to one canonical scheme before measuring. This is
+      the only option that makes numbers actually comparable, and it is a large
+      piece of work: it means encoding the conversion rules for coordination,
+      adpositions, copulas and complementisers, per source scheme. It is a
+      project, not a parameter.
+
+My recommendation is Option 3, but Option 1 is defensible if MDD is only ever
+going to be computed inside one pipeline with one parser.
