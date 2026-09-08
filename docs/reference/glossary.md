@@ -11,6 +11,11 @@ produce one.
 **Band** — a plain-language label for a LIX score (`very easy` … `very difficult`). Valid
 only at threshold 6. See [LIX bands](lix-bands.md).
 
+**Dependency distance** — the linear distance between a word and its governor, counted as
+the difference of their positions, so adjacent words are at distance 1. The root has none.
+
+**DD** — dependency distance.
+
 **Equipercentile matching** — choosing a threshold for one language so that it selects the
 same *share* of running words that the reference threshold selects in another. What
 `match_threshold` does.
@@ -37,6 +42,19 @@ letters, three characters.
 seam can put `z` next to `s` without them being the letter `zs`: `község` is `köz` + `ség`.
 See [Count letters rather than characters](../how-to/count-letters-not-characters.md).
 
+**Head** — the word another word depends on, its governor. **Which word is the head is a
+convention, not a fact**: HuSpaCy makes the first conjunct head a coordination, emtsv makes
+the conjunction do it, and the two give different scores for the same sentence. Record
+`parser=` so a reader knows which convention produced a number.
+
+**Hierarchical distance** — the path length from the root of a dependency tree down to a
+node, counted in edges. The root sits at 0 and is excluded from the average.
+
+**Idegen szó** — a Hungarian word still *felt* as foreign, as against a **jövevényszó**, a
+borrowing so assimilated that no speaker hears it as foreign. *Ablak*, *király* and *pénz*
+are all Slavic borrowings and all firmly the second kind. A lexicon built from etymology
+contains both, and a ratio computed against it measures origin rather than foreignness.
+
 **LIX** — *Läsbarhetsindex*, Björnsson's readability index: `A/B + 100·C/A`.
 
 **Long word** — a word whose length is **strictly greater than** the threshold. The default
@@ -46,8 +64,23 @@ of 6 therefore means seven letters or more.
 approximately independent of total length and therefore comparable between texts of different
 sizes, unlike TTR.
 
+**MDD** — Mean Dependency Distance, the average of a sentence's dependency distances.
+*n* is the number of dependency **pairs**, not of words: the root has no governor, so seven
+words give six pairs.
+
+**MHD** — Mean Hierarchical Distance, the average depth of a sentence's non-root nodes.
+Proposed by Jing & Liu (2015) because MDD alone cannot tell a flat, long-range sentence from
+a deep, locally packed one.
+
+**Macro / micro aggregation** — for a text, whether per-sentence means are averaged (macro,
+every sentence weighing the same) or every dependency pair is pooled and divided once
+(micro, long sentences dominating). Different numbers, not different roundings.
+
 **RIX** — Anderson's simplification of LIX: long words per sentence, *C/B*. No interpretation
 bands ship for it.
+
+**Parse** — a sentence with a head index on every token. The third input stream in saphes,
+and the only one no tokeniser can produce.
 
 **Stratum** — a nested sub-sample of the Hungarian Webcorpus with a known error rate. The
 calibration uses the 4% stratum, which has fewer mistakes than an average print document.
@@ -68,6 +101,10 @@ is **not** comparable between texts of different lengths.
 
 **Type-weighted** — counting each distinct word once, regardless of frequency. The most
 likely silent error in a calibration study.
+
+**Punctuation policy** — whether punctuation is removed and the remaining tokens
+**re-indexed** (`"collapse"`, what the literature does), merely skipped in the original index
+space (`"ignore"`, which reports larger distances), or counted (`"keep"`).
 
 **Unit** — whether a token stream is `"lemma"`, `"surface"` or `"stem"`. Required on
 `lexical_diversity`, recorded on every result. See

@@ -4,12 +4,14 @@
 
 # saphes
 
-Readability and lexical diversity — two metrics, done carefully, with the parameters other
-implementations hardcode.
+Readability, lexical diversity, syntactic complexity and loan-word ratio — a small set of
+metrics, done carefully, with the parameters other implementations hardcode.
 
 *saphes* — σαφής, "clear, plain, distinct". Aristotle makes clarity the chief virtue of λέξις
-(style); the other classical axis is ποικιλία, variety. The two metrics here are exactly those
-axes: **LIX measures clarity, TTR measures variety.**
+(style); the other classical axis is ποικιλία, variety. The package began as exactly those two
+axes — **LIX measures clarity, TTR measures variety** — and has since grown a third,
+**how hard a sentence is to hold in your head**, and a fourth, **how much of the vocabulary
+is still felt as foreign**.
 
 ## Why this exists
 
@@ -71,18 +73,49 @@ lix(text, length_policy=hungarian_letter_count, long_word_threshold=int(hu))
 lexical_diversity(hungarian_stems(tokens), unit="stem")
 ```
 
+### Syntactic complexity, from any parser
+
+```python
+from saphes import from_conllu, mean_dependency_distance, mean_hierarchical_distance
+
+parses = from_conllu(open("corpus.conllu").read())
+mdd = mean_dependency_distance(parses, parser="emtsv tok-dep-conll")
+mhd = mean_hierarchical_distance(parses, parser="emtsv tok-dep-conll")
+print(mdd.mdd, mhd.mhd)
+```
+
+`from_spacy` takes a HuSpaCy or spaCy `Doc` and imports neither. **Record `parser=`:** a
+parser carries the annotation convention of the treebank it was trained on, and that
+convention decides which word is the head — which is the whole input to a distance measure.
+
+### Loan words
+
+```python
+from pathlib import Path
+from saphes import loanword_ratio
+
+lexicon = set(Path("idegenszavak.txt").read_text(encoding="utf-8").split())
+print(loanword_ratio(lemmas, lexicon=lexicon).ratio)
+```
+
+saphes ships no lexicon in the package; `lexicon` is required. A 15,203-lemma Hungarian list
+lives in `experiments/loanwords/results/`.
+
 ## The data contract
 
-The two metrics require **opposite** token streams.
+Each metric wants a **different** input, and two of them want opposites.
 
 | Metric | Wants | Because |
 |---|---|---|
+| `lix`, `rix` | **surface forms** | Word length *is* the signal. `házakban` is 8 characters; its lemma `ház` is 3. |
 | `lexical_diversity` | **lemmas** | Surface variation is *noise* — it measures morphology, not vocabulary. Hungarian `ház / házak / házban / házakat` is four types and one lemma. |
-| `lix` | **surface forms** | Word length *is* the signal. `házakban` is 8 characters; its lemma `ház` is 3. |
+| `loanword_ratio` | **lemmas** | Morphology buries the root. `komputerekkel` misses a lexicon holding `komputer`. |
+| `mean_dependency_distance`, `mean_hierarchical_distance` | **a parse** | Head indices. No tokeniser produces them; they come from a parser, via `saphes.adapters`. |
 
-Feed the same list to both and exactly one is silently wrong — no error, no NaN, just a
-plausible number. `unit` is required, the parameter names differ, a raw string is refused
-where it could only be wrong, and every result records what it measured.
+Feed the same list to the first two and exactly one is silently wrong — no error, no NaN,
+just a plausible number. `unit` is required, the parameter names differ (`words=` against
+`lemmas=` against `parses=`), a raw string is refused where it could only be wrong, and
+every result records what it measured.
 
 **saphes consumes lemmas; it does not produce them.** Lemmatisation is language-specific and
 heavy — CLTK or a treebank for Greek, huspacy for Hungarian. The caller lemmatises; saphes
@@ -101,13 +134,14 @@ stem-based number is comparable only to another from the same stemmer.
 - **[Tutorial](https://saphes.readthedocs.io/en/latest/tutorial/first-measurement/)** — new
   here? Measure your first text in about ten minutes, with nothing to download.
 - **[How-to guides](https://saphes.readthedocs.io/en/latest/how-to/install/)** — measure
-  Hungarian text, supply a sentence count, count letters rather than characters, stem without
-  a lemmatiser, calibrate a threshold.
+  Hungarian text, pass a HuSpaCy doc or emtsv stream, customise the loan-word lexicon, supply
+  a sentence count, count letters rather than characters, stem without a lemmatiser,
+  calibrate a threshold.
 - **[Reference](https://saphes.readthedocs.io/en/latest/reference/)** — every function, its
   contract and its failure modes, plus the calibration data.
 - **[Explanation](https://saphes.readthedocs.io/en/latest/explanation/two-token-streams/)** —
-  why the two metrics need opposite input, why the threshold has to move, and why
-  implementations disagree.
+  why the metrics need different input, what dependency distance measures, why loan words
+  need lemmas, why the threshold has to move, and why implementations disagree.
 
 Every code block in the docs is executed by CI, so nothing there can drift.
 

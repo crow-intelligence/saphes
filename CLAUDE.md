@@ -1,8 +1,9 @@
 # saphes — project notes for Claude
 
-Readability (LIX) and lexical diversity (TTR/MATTR). Deliberately small: two metrics, with
-the parameters other implementations hardcode. Fifth member of the corpus-lx family
-(chronowords, kenon, keyflux, lexograph).
+Readability (LIX/RIX), lexical diversity (TTR/MATTR), syntactic complexity (MDD/MHD) and the
+Hungarian loan-word ratio. Deliberately small: a handful of metrics, with the parameters
+other implementations hardcode. Fifth member of the corpus-lx family (chronowords, kenon,
+keyflux, lexograph).
 
 ## Tech stack
 
@@ -23,6 +24,13 @@ the parameters other implementations hardcode. Fifth member of the corpus-lx fam
 - `readability.py` — `lix`, `lix_from_counts`, `rix`, `word_length`, `interpret_lix`,
   `LIX_BANDS`, `LixResult`.
 - `diversity.py` — `lexical_diversity`, `ttr_from_counts`, `mattr`, `DiversityResult`.
+- `syntax.py` — `mean_dependency_distance`, `mean_hierarchical_distance`,
+  `dependency_distances`, `hierarchical_distances`, the two kernels, `DepToken`. Pure maths,
+  no data, no I/O.
+- `adapters.py` — `from_spacy` (duck-typed, never imports spaCy) and `from_conllu`. The seam
+  between a parser and the metrics.
+- `loanwords.py` — `loanword_ratio`, `loan_ratio_from_counts`, `LoanwordResult`. Carries no
+  lexicon; `lexicon` is a required argument.
 - `calibration.py` — `length_curve`, `match_threshold`, `recommended_threshold`,
   `collapse_digraphs`. **Pure and data-free**, because `--doctest-modules` runs everything
   under `src/` on a CI runner with no corpus.
@@ -39,7 +47,7 @@ deliberate exception, because what it tests spans two modules.
 
 ## The invariant that matters most
 
-**The two metrics require opposite token streams.** `lexical_diversity` wants lemmas;
+**The two oldest metrics require opposite token streams.** `lexical_diversity` wants lemmas;
 `lix` wants surface forms. Feeding one stream to both produces no error and no NaN — just a
 plausible wrong number.
 
@@ -51,6 +59,13 @@ Related invariants, all deliberate:
 
 - `unit` on `lexical_diversity` is keyword-only with **no default**. Do not add one.
 - `lix` accepts no `unit=` parameter at all. That is what makes the guard work.
+- `loanword_ratio` requires `lexicon`; there is no default and no fallback. The spelling
+  heuristic that used to be the fallback was removed in 0.2.0 — it covered 8.4% of the
+  shipped lexicon, fired on native Hungarian (`látható`, `mintha`, `Tóth`), and its genuine
+  finds were the assimilated words a frequency-selected lexicon excludes on purpose.
+- `mean_dependency_distance` takes `parses=`, a sequence of **sentences**. A flat token list
+  raises. `parser=` is free text and worth recording every time: the parser carries its
+  treebank's head convention, and that convention moves the score.
 - A raw string into `lexical_diversity` raises unless `unit="surface"`.
 - `mattr` keeps its bare-float signature `mattr(tokens, window=100) -> float`, unlike
   everything else here, so `music_networks` and `kmdb_dashboard` can drop their duplicate

@@ -1,7 +1,7 @@
 [project]
 name = "saphes"
 version = "0.2.0"
-description = "Readability (LIX) and lexical diversity (TTR/MATTR) with the parameters other implementations hardcode"
+description = "Readability, lexical diversity, syntactic complexity and loan-word ratio, with the parameters other implementations hardcode"
 readme = "README.md"
 authors = [
     { name = "Zoltan Varju", email = "zoltan.varju@crowintelligence.org" },
@@ -17,6 +17,11 @@ keywords = [
     "lexical-diversity",
     "type-token-ratio",
     "mattr",
+    "dependency-distance",
+    "syntactic-complexity",
+    "mdd",
+    "loanwords",
+    "hungarian",
     "corpus-linguistics",
     "computational-humanities",
 ]

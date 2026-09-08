@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- The front-facing material was left describing a two-metric package while 0.2.0 shipped
+  five. Corrected: the `pyproject` description and keywords (which are what PyPI shows),
+  both the README and `docs/index.md` intros, and the data-contract table, which now lists
+  all four input contracts rather than the original opposed pair.
+- **New tutorial**, `tutorial/measure-syntactic-complexity.md` — builds a parse by hand so
+  the counts are visible before the average, reproduces Jing & Liu's 1.17 and 2, then hands
+  the job to a real parser. Promised in the plan for 0.2.0 and missed.
+- **Glossary** gained the vocabulary the release introduced and had none of: dependency
+  distance, head, hierarchical distance, MDD, MHD, macro/micro aggregation, parse,
+  punctuation policy, and *idegen szó* against *jövevényszó*.
+- `CLAUDE.md` module layout now lists `syntax.py`, `adapters.py` and `loanwords.py`, and
+  records the invariants they carry.
+
 ### Planned
 
 - The same calibration study for Ancient Greek, for the Homer project. The method transfers
