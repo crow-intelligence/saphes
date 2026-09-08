@@ -10,7 +10,12 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from saphes import FOREIGN_PATTERNS, loan_ratio_from_counts, loanword_ratio
+from saphes import (
+    FOREIGN_PATTERNS,
+    HEURISTIC_EXCEPTIONS,
+    loan_ratio_from_counts,
+    loanword_ratio,
+)
 from tests.strategies import hungarian_word
 
 LEXICON = {"komputer", "internet", "absztrakt", "szoftver"}
@@ -161,10 +166,9 @@ class TestHeuristic:
         assert result.matched == 1
         assert result.pattern_counts == (("ku", 1),)
 
-    def test_a_proper_noun_trips_the_heuristic(self) -> None:
-        """The documented false positive, pinned so it cannot be forgotten."""
-        assert loanword_ratio(["Wesselényi"], heuristic=True).matched == 1
-        assert loanword_ratio(["Széchenyi"], heuristic=True).matched == 1
+    def test_a_proper_noun_outside_the_exceptions_still_trips(self) -> None:
+        """The residual failure: an unlisted surname is still flagged."""
+        assert loanword_ratio(["Wagnerné"], heuristic=True).matched == 1
 
 
 class TestExclusions:
@@ -348,45 +352,85 @@ class TestLoanwordProperties:
         assert not letters & set(dict(result.pattern_counts))
 
 
-class TestHungarianSurnamesTripTheHeuristic:
-    """The heuristic's worst false positives are ordinary Hungarian names.
+class TestHungarianSurnamesAreExcepted:
+    """Archaic surname orthography is the heuristic's worst false positive.
 
-    `th` survives in Hungarian surnames as an archaic spelling of plain `t`,
-    and those surnames are not rare — Tóth and Németh are among the commonest
-    in the country. No spelling rule separates them from `thriller`, so the
-    only defence is `pos_tags`. These tests exist so the problem cannot be
-    quietly forgotten, and so that changing the default pattern set is a
-    visible decision rather than an accident.
+    `th` spells a plain `t` in Hungarian surnames, and those surnames are not
+    rare — Tóth and Németh are among the commonest in the country. They are
+    listed in `HEURISTIC_EXCEPTIONS`, with MOKK Webcorpus frequencies, so the
+    list is attested rather than remembered.
     """
 
     SURNAMES = ["Tóth", "Horváth", "Németh", "Kossuth", "Széchenyi", "Wesselényi"]
 
     @pytest.mark.parametrize("surname", SURNAMES)
-    def test_a_common_surname_is_flagged(self, surname: str) -> None:
-        assert loanword_ratio([surname], heuristic=True).matched == 1
-
-    def test_tagging_them_removes_them_all(self) -> None:
-        result = loanword_ratio(
-            [*self.SURNAMES, "taxi"],
-            heuristic=True,
-            pos_tags=["PROPN"] * len(self.SURNAMES) + ["NOUN"],
-        )
-        assert result.excluded == len(self.SURNAMES)
-        assert result.matched == 1
-        assert result.matches == ("taxi",)
-
-    def test_without_tags_the_ratio_is_badly_wrong(self) -> None:
-        """Six names and one loan word report as seven foreign words in seven."""
-        untagged = loanword_ratio([*self.SURNAMES, "taxi"], heuristic=True)
-        assert untagged.ratio == 1.0
-
-    def test_dropping_th_is_a_one_line_change(self) -> None:
-        """Documented escape hatch: the pattern set is a parameter."""
-        without_th = {k: v for k, v in FOREIGN_PATTERNS.items() if k != "th"}
-        result = loanword_ratio(
-            ["Tóth", "Horváth"], heuristic=True, patterns=without_th
-        )
+    def test_a_common_surname_is_not_flagged(self, surname: str) -> None:
+        result = loanword_ratio([surname], heuristic=True, lexicon=set())
         assert result.matched == 0
+        assert result.exceptions_applied == 1
+
+    def test_the_exceptions_can_be_disabled(self) -> None:
+        """They are a parameter, so the old behaviour is one argument away."""
+        result = loanword_ratio(
+            ["Tóth"], heuristic=True, lexicon=set(), exceptions=frozenset()
+        )
+        assert result.matched == 1
+
+    def test_they_do_not_suppress_lexicon_evidence(self) -> None:
+        """An exception says a spelling misleads, not that a word is native."""
+        result = loanword_ratio(["Tóth"], lexicon={"tóth"}, heuristic=True)
+        assert result.matched == 1
+        assert result.matched_by_lexicon == 1
+
+    def test_gh_surnames_need_no_exception(self) -> None:
+        """`gh` is not a pattern, so Balogh and Végh are already safe."""
+        for surname in ("Balogh", "Végh", "Országh", "Virágh"):
+            assert loanword_ratio([surname], heuristic=True, lexicon=set()).matched == 0
+        assert "balogh" not in HEURISTIC_EXCEPTIONS
+
+
+class TestMorphemeSeamsDoNotFire:
+    """Hungarian manufactures these digraphs across a suffix boundary.
+
+    The potential suffix `-hat`/`-het` and the allative `-hoz`/`-hez`/`-höz`
+    put an `h` straight after a stem, so any stem ending in `t`, `p` or `c`
+    produces `th`, `ph` or `ch` at the seam. On the MOKK Webcorpus that is
+    1,187 word forms and 2.5 million tokens — far more damage than the
+    surnames do, and productive, so no list could ever cover it.
+    """
+
+    @pytest.mark.parametrize(
+        "word,seam",
+        [
+            ("látható", "lát + ható"),
+            ("tekinthető", "tekint + hető"),
+            ("letölthető", "letölt + hető"),
+            ("fenntartható", "fenntart + ható"),
+            ("kapható", "kap + ható"),
+            ("állathoz", "állat + hoz"),
+            ("kalaphoz", "kalap + hoz"),
+            ("táncház", "tánc + ház"),
+        ],
+    )
+    def test_a_seam_does_not_fire(self, word: str, seam: str) -> None:
+        result = loanword_ratio([word], heuristic=True, lexicon=set())
+        assert result.matched == 0, seam
+
+    @pytest.mark.parametrize(
+        "word", ["mintha", "otthon", "itthon", "hátha", "szentháromság", "kétharmad"]
+    )
+    def test_lexicalised_compounds_are_excepted(self, word: str) -> None:
+        """A rule cannot reach these, so they are listed instead."""
+        result = loanword_ratio([word], heuristic=True, lexicon=set())
+        assert result.matched == 0
+        assert result.exceptions_applied == 1
+
+    @pytest.mark.parametrize(
+        "word", ["thriller", "theológia", "philosophia", "technológia", "pszichológia"]
+    )
+    def test_real_foreign_spellings_still_fire(self, word: str) -> None:
+        """The lookahead must not cost the words the heuristic exists for."""
+        assert loanword_ratio([word], heuristic=True, lexicon=set()).matched == 1
 
 
 class TestBoundaries:
