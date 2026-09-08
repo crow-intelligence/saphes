@@ -50,8 +50,6 @@ from saphes.hungarian import (  # noqa: E402 - __version__ must precede these
     hungarian_letters,
 )
 from saphes.loanwords import (  # noqa: E402 - __version__ must precede these
-    FOREIGN_PATTERNS,
-    HEURISTIC_EXCEPTIONS,
     LoanwordResult,
     loan_ratio_from_counts,
     loanword_ratio,
@@ -80,8 +78,6 @@ from saphes.syntax import (  # noqa: E402 - __version__ must precede these
 )
 
 __all__ = [
-    "FOREIGN_PATTERNS",
-    "HEURISTIC_EXCEPTIONS",
     "LIX_BANDS",
     "DepToken",
     "DiversityResult",

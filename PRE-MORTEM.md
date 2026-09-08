@@ -116,32 +116,21 @@ not about the *scheme*, and it is not enough. **[needs human decision]** whether
 free-text `scheme=` field should be added before 1.0, or whether that is a methods-section
 problem rather than a library problem.
 
-### 4d. The loan-word heuristic is turned on without tags
+### 4d. The lexicon is the only evidence, and its gaps are silent
 
-`loanword_ratio(..., heuristic=True)` without `pos_tags` reports Tóth, Horváth, Németh,
-Kossuth, Széchenyi and Wesselényi as foreign words. Those are among the commonest surnames
-in Hungary, and `th` is in the default pattern set because it is a genuine marker in common
-nouns — *thriller*, *thallium* — where Hungarian otherwise writes plain *t*.
+`loanword_ratio` has one source of truth: the set the caller passes. A loan word absent from
+it is counted native, with no signal. There is no longer a spelling heuristic to catch the
+overflow — it was removed because it covered 8.4% of the shipped lexicon, fired constantly
+on native Hungarian (*látható*, *mintha*, *Tóth*), and its genuine finds were the assimilated
+words a frequency-selected list excludes on purpose, so it reversed the caller's own
+decision.
 
-So the default set is right for common nouns and badly wrong for proper ones, and nothing
-in the signature forces the caller to notice. `matched_by_heuristic` and `pattern_counts`
-are on the result for this reason, and the `__repr__` grows a warning line when any match
-came from spelling alone — the same device `DiversityResult` uses for the TTR length
-caveat.
+That is the better failure — one mechanism, one meaning — but it is still a failure.
+`lexicon_size` is on every result so a suspiciously small list is visible, and `matches`
+carries the lemmas so a suspicious ratio can be checked.
 
-Surfaces as: a corpus of Hungarian history or parliamentary speech reporting an
-implausibly high idegenszó-arány, driven entirely by names.
-
-**Resolved.** `th` ships, with two mitigations established from the MOKK Webcorpus rather
-than from memory. The digraph patterns carry a negative lookahead so they do not fire across
-Hungarian's `-hat`/`-het` and `-hoz`/`-hez`/`-höz` seams — *látható*, *kapható*, *állathoz*,
-*táncház* — which turned out to be **the larger problem by far**: 1,187 word forms and 2.5
-million tokens, productive, and unreachable by any list. The surnames and the lexicalised
-compounds (*mintha*, *otthon*, *hátha*) are in `HEURISTIC_EXCEPTIONS` with their corpus
-frequencies. Together they cut the tokens the heuristic flags by **16.5%**.
-
-The residual is unchanged in kind: a surname outside the list is still flagged, and only
-`pos_tags` will catch it. `exceptions=` is a parameter.
+Surfaces as: a corpus of recent Hungarian scoring low because the lexicon predates its
+vocabulary. Bakos is ~2007; *podcast*, *influenszer* and *szelfi* are not in it.
 
 ### 4e. A lexicon measures etymology and gets read as assimilation
 
