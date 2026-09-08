@@ -16,6 +16,7 @@ from saphes import (
     mdd_from_counts,
     mean_dependency_distance,
 )
+from saphes.syntax import _sentence
 from tests.strategies import dependency_tree
 
 # Jing & Liu (2015: 164), "Mr. Nixon was to leave China today ."
@@ -352,3 +353,171 @@ class TestSyntaxProperties:
         """The adapter contract: a plain 4-tuple is as good as a DepToken."""
         bare = [tuple(token) for token in parse]
         assert dependency_distances(bare) == dependency_distances(parse)
+
+
+class TestBoundaries:
+    """Cases one step either side of a comparison, found by mutation testing.
+
+    Every test here kills a mutant that the rest of the suite let through. They
+    are boundaries rather than examples: the smallest legal input, the value
+    exactly on a filter's threshold, the second occurrence of something the
+    suite had only ever seen once.
+    """
+
+    def test_a_single_pair_is_enough(self) -> None:
+        """pairs=1 is the smallest defined input, not a degenerate one."""
+        assert mdd_from_counts(total_distance=1, pairs=1) == 1.0
+
+    def test_all_adjacent_arcs_give_exactly_one(self) -> None:
+        """A total equal to pairs is an ordinary sentence, not a transposition."""
+        assert mdd_from_counts(total_distance=6, pairs=6) == 1.0
+
+    def test_an_all_adjacent_parse_scores_one(self) -> None:
+        chain = [
+            DepToken(1, 2, False, "DET"),
+            DepToken(2, 0, False, "NOUN"),
+            DepToken(3, 2, False, "ADJ"),
+        ]
+        assert mean_dependency_distance([chain]).mdd == 1.0
+
+    def test_no_orphans_under_ignore_or_keep(self) -> None:
+        """Only 'collapse' removes a token that an arc could point at."""
+        for policy in ("ignore", "keep"):
+            result = mean_dependency_distance([NIXON], punctuation=policy)  # type: ignore[arg-type]
+            assert result.orphaned_arcs == 0
+
+    def test_orphans_accumulate_and_do_not_stop_the_scan(self) -> None:
+        """Two orphans, with a countable arc after them both."""
+        parse = [
+            DepToken(1, 4, False, "X"),
+            DepToken(2, 4, True, "PUNCT"),
+            DepToken(3, 2, False, "X"),
+            DepToken(4, 0, False, "VERB"),
+            DepToken(5, 2, False, "X"),
+            DepToken(6, 4, False, "X"),
+        ]
+        result = mean_dependency_distance([parse])
+        assert result.orphaned_arcs == 2
+        assert result.pairs == 2
+        assert result.total_distance == 4
+
+    def test_min_sentence_length_keeps_a_sentence_of_exactly_that_length(self) -> None:
+        """Jing & Liu drop sentences with *fewer than* three words, not three."""
+        three = [
+            DepToken(1, 2, False, "DET"),
+            DepToken(2, 0, False, "NOUN"),
+            DepToken(3, 2, False, "ADJ"),
+        ]
+        kept = mean_dependency_distance([three, FOX], min_sentence_length=3)
+        assert kept.sentences == 2
+        assert kept.skipped_sentences == 0
+        dropped = mean_dependency_distance([three, FOX], min_sentence_length=4)
+        assert dropped.sentences == 1
+        assert dropped.skipped_sentences == 1
+
+    def test_the_error_names_the_offending_sentence(self) -> None:
+        """Ordinals are 1-based, and are how you find the bad tree in a corpus."""
+        bad = [DepToken(1, 9, False, "X")]
+        with pytest.raises(ValueError, match="sentence 2,"):
+            mean_dependency_distance([SHORT, bad])
+
+    def test_a_four_character_string_is_a_type_error(self) -> None:
+        """len() == 4 is not enough to be a token; it must be a tuple or list."""
+        with pytest.raises(TypeError, match="4-tuple"):
+            mean_dependency_distance([["abcd"]])
+
+    def test_a_bare_tuple_keeps_its_pos_tag(self) -> None:
+        """The tag never reaches the arithmetic, so only this pins the adapter path."""
+        tokens = _sentence([(1, 2, False, "DET"), (2, 0, False, "NOUN")], ordinal=1)
+        assert [token.pos for token in tokens] == ["DET", "NOUN"]
+
+
+class TestAccumulation:
+    """Counts must accumulate across sentences, not be overwritten by the last.
+
+    Every test here needs at least two contributing sentences. A single-sentence
+    suite cannot tell ``total += n`` from ``total = n``, which is why these were
+    invisible until mutation testing pointed at them.
+    """
+
+    def test_token_and_punctuation_counts_sum(self) -> None:
+        result = mean_dependency_distance([NIXON, FOX])
+        assert result.tokens == 7 + 9
+        assert result.punctuation_dropped == 2
+
+    def test_roots_sum(self) -> None:
+        assert mean_dependency_distance([NIXON, FOX]).roots == 2
+
+    def test_orphans_sum_across_sentences(self) -> None:
+        parse = [
+            DepToken(1, 4, False, "X"),
+            DepToken(2, 4, True, "PUNCT"),
+            DepToken(3, 2, False, "X"),
+            DepToken(4, 0, False, "VERB"),
+            DepToken(5, 2, False, "X"),
+            DepToken(6, 4, False, "X"),
+        ]
+        assert mean_dependency_distance([parse, parse]).orphaned_arcs == 4
+
+    def test_skipped_sentences_sum(self) -> None:
+        lone = [DepToken(1, 0, False, "INTJ")]
+        assert mean_dependency_distance([lone, lone, FOX]).skipped_sentences == 2
+
+    def test_skipped_sums_under_the_length_filter(self) -> None:
+        assert (
+            mean_dependency_distance(
+                [SHORT, SHORT, FOX], min_sentence_length=3
+            ).skipped_sentences
+            == 2
+        )
+
+
+class TestFilterSelectsTheRightSentence:
+    """A filter that keeps the wrong sentence yields identical counts.
+
+    ``require_single_root`` dropping one of two sentences looks the same from
+    ``sentences`` and ``skipped_sentences`` whichever one it dropped. Only the
+    score says which survived.
+    """
+
+    FRAGMENT = [
+        DepToken(1, 0, False, "VERB"),
+        DepToken(2, 1, False, "X"),
+        DepToken(3, 0, False, "VERB"),
+    ]
+
+    def test_it_keeps_the_singly_rooted_sentence(self) -> None:
+        result = mean_dependency_distance(
+            [self.FRAGMENT, FOX], require_single_root=True
+        )
+        assert result.mdd == pytest.approx(2.125)
+        assert result.pairs == 8
+
+    def test_the_fragment_alone_would_have_scored_differently(self) -> None:
+        """Pins that the assertion above is discriminating, not a coincidence."""
+        assert mean_dependency_distance([self.FRAGMENT]).mdd == 1.0
+
+    def test_skipped_fragments_are_counted_not_overwritten(self) -> None:
+        result = mean_dependency_distance(
+            [self.FRAGMENT, self.FRAGMENT, FOX], require_single_root=True
+        )
+        assert result.skipped_sentences == 2
+        assert result.sentences == 1
+
+
+class TestErrorMessages:
+    """The message has to identify what to go and look at."""
+
+    def test_zero_distance_reports_the_convention_not_the_sign(self) -> None:
+        """total=0 with a real pair means intervening-words counting, not a negative."""
+        with pytest.raises(ValueError, match="intervening words"):
+            mdd_from_counts(total_distance=0, pairs=1)
+
+    def test_single_sentence_errors_are_numbered_from_one(self) -> None:
+        with pytest.raises(ValueError, match="sentence 1,"):
+            dependency_distances([DepToken(1, 9, False, "X")])
+
+    def test_a_lone_token_passed_as_a_list_names_the_token_shape(self) -> None:
+        """A plausible slip: one token, wrapped once instead of twice."""
+        with pytest.raises(TypeError, match="4-tuple"):
+            mean_dependency_distance([[1, 2, False, "X"]])
