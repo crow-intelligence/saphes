@@ -7,21 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
-
-- The front-facing material was left describing a two-metric package while 0.2.0 shipped
-  five. Corrected: the `pyproject` description and keywords (which are what PyPI shows),
-  both the README and `docs/index.md` intros, and the data-contract table, which now lists
-  all four input contracts rather than the original opposed pair.
-- **New tutorial**, `tutorial/measure-syntactic-complexity.md` — builds a parse by hand so
-  the counts are visible before the average, reproduces Jing & Liu's 1.17 and 2, then hands
-  the job to a real parser. Promised in the plan for 0.2.0 and missed.
-- **Glossary** gained the vocabulary the release introduced and had none of: dependency
-  distance, head, hierarchical distance, MDD, MHD, macro/micro aggregation, parse,
-  punctuation policy, and *idegen szó* against *jövevényszó*.
-- `CLAUDE.md` module layout now lists `syntax.py`, `adapters.py` and `loanwords.py`, and
-  records the invariants they carry.
-
 ### Planned
 
 - The same calibration study for Ancient Greek, for the Homer project. The method transfers
@@ -29,6 +14,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependency motifs (Jing & Liu 2017), extending the MDD/MHD pair. Deferred rather than
   rushed: it produces a distribution of chunk types rather than a score, so it needs a
   corpus study to say anything.
+
+## [0.2.1] - 2026-09-08
+
+A documentation release. No code changes; the metric behaviour is identical to 0.2.0.
+
+**Why it exists.** 0.2.0's package metadata and README were built from a commit that still
+described saphes as two metrics. PyPI renders the summary and README from the *uploaded
+distribution*, so the package page advertised readability and lexical diversity and made no
+mention of dependency distance, hierarchical distance or the loan-word ratio — on the
+surface most people meet first. That cannot be corrected in place; it needs a release.
+
+### Documentation
+
+- **`pyproject` summary and keywords.** The summary now reads "Readability, lexical
+  diversity, syntactic complexity and loan-word ratio"; keywords gained
+  `dependency-distance`, `syntactic-complexity`, `mdd`, `loanwords` and `hungarian`.
+- **README and `docs/index.md`**, both of which opened with "two metrics", along with the
+  Aristotle passage that mapped the package onto exactly two classical axes.
+- **The data-contract table**, the README's central idea. It contrasted two opposed token
+  streams; there are now four contracts, one of which — a parse — no tokeniser can produce.
+- **README quickstart** gained syntactic complexity and loan words.
+- **New tutorial**, `tutorial/measure-syntactic-complexity.md`. Builds a parse by hand so
+  the six distances are visible before the average is taken, reproduces Jing & Liu's
+  published 1.17 and 2, then hands the job to `from_conllu`. Promised in the plan for 0.2.0
+  and missed.
+- **Glossary** gained the vocabulary 0.2.0 introduced and had none of: dependency distance,
+  head, hierarchical distance, MDD, MHD, macro/micro aggregation, parse, punctuation policy,
+  and *idegen szó* against *jövevényszó*.
+- `CLAUDE.md` module layout now lists `syntax.py`, `adapters.py` and `loanwords.py`.
+
+### Fixed
+
+- **The docs toolchain is pinned.** Read the Docs installs `docs/requirements.txt` unpinned
+  on every build, and Material for MkDocs is shipping a 2.0 that removes the plugin system
+  with no migration path. A failed Read the Docs build leaves the previous site serving, so
+  that failure would have been silent. Ceilings on `mkdocs`, `mkdocs-material` and
+  `mkdocstrings`, to be raised deliberately.
 
 ## [0.2.0] - 2026-09-08
 
