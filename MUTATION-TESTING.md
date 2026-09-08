@@ -10,9 +10,10 @@ example database during parallel mutation runs.
 Mutation is scoped to the arithmetic core and its fast tests (see `[tool.mutmut]` in
 `pyproject.toml`):
 
-- mutated: `readability.py`, `diversity.py`, `segment.py`, `syntax.py`, `adapters.py`
+- mutated: `readability.py`, `diversity.py`, `segment.py`, `syntax.py`, `adapters.py`,
+  `loanwords.py`
 - test selection: `test_readability.py`, `test_diversity.py`, `test_segment.py`,
-  `test_syntax.py`, `test_adapters.py`, `test_contracts.py`
+  `test_syntax.py`, `test_adapters.py`, `test_loanwords.py`, `test_contracts.py`
 
 `datasets/` and `_types.py` are **not** mutated — they hold literals and type aliases, not
 logic. This is a deliberate cap, not full coverage.
@@ -21,16 +22,16 @@ logic. This is a deliberate cap, not full coverage.
 
 | metric | value |
 |--------|------:|
-| total mutants | 1,073 |
-| killed | 929 |
+| total mutants | 1,245 |
+| killed | 1,086 |
 | skipped (no covering test) | 22 |
 | detected by timeout | 1 |
-| **survived** | **121** |
-| **mutation score** | **~88%** (929 / 1,051 testable) |
+| **survived** | **136** |
+| **mutation score** | **~89%** (1,086 / 1,223 testable) |
 
-Mutants generated: `syntax` 578, `readability` 190, `diversity` 134, `adapters` 111,
-`segment` 60. **Survivors: `syntax` 68, `readability` 23, `adapters` 17, `diversity` 11,
-`segment` 2.**
+Mutants generated: `syntax` 578, `readability` 190, `loanwords` 172, `diversity` 134,
+`adapters` 111, `segment` 60. **Survivors: `syntax` 68, `readability` 23, `adapters` 17,
+`loanwords` 15, `diversity` 11, `segment` 2.**
 
 > **Read survivor counts from the `: survived` lines only.** `mutmut results` also lists
 > the 22 "no covering test" mutants, and all 22 are in `segment.py` — the `punkt` branch
@@ -151,6 +152,24 @@ The other four were test gaps, each pinning something the adapters actually prom
   unit test now covers it too.
 - `offset = tokens[0].i` → `None` — `offset` appears only in an error message, so the test
   now asserts the token range that message reports.
+
+## What survives in `loanwords.py`
+
+15 survivors, **all error-message text**. No surviving mutant changes a match, a count or a
+ratio.
+
+The first pass left 25, ten of them real, and they fell into the classes this document has
+now recorded three times — accumulators asserted on a single item, and a comparison whose
+two sides were never made to differ. Two were more specific:
+
+- `sorted(hits.items(), key=lambda kv: (-kv[1], kv[0]))` had **four** surviving mutations of
+  its sort key, because every test used patterns that fired exactly once. Ordering
+  `pattern_counts` most-frequent-first is a documented promise; pinning it needs one pattern
+  that fires twice, and the alphabetical tie-break needs two that fire once *in the wrong
+  insertion order*.
+- `lemma in exclude or raw in exclude` → `and` survived because every test excluded an
+  already-lower-case word, where the two operands are the same string. The `or` exists so a
+  caller can write an exclusion in original case while `case_fold=True` is in effect.
 
 ## What survives in the original three modules
 
