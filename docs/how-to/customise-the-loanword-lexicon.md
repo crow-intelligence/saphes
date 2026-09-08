@@ -22,6 +22,35 @@ Any object supporting `in` works. A `set` of lower-case lemmas is the usual choi
 Entries are matched after NFC normalisation and case folding, so a lexicon of dictionary
 head-words matches capitalised text without extra work.
 
+## Use the bundled list
+
+saphes ships no lexicon inside the package, but the repository carries one:
+`experiments/loanwords/results/idegenszavak.txt`, 15,203 Hungarian lemmas.
+
+```python
+from pathlib import Path
+from saphes import loanword_ratio
+
+lexicon = set(
+    Path("experiments/loanwords/results/idegenszavak.txt")
+    .read_text(encoding="utf-8")
+    .split()
+)
+result = loanword_ratio(lemmas, lexicon=lexicon, lexicon_id="idegenszavak-2026-09")
+```
+
+It is a **frequency-selected** list, not a dictionary transcription: candidates are MOKK
+Hungarian Webcorpus word forms verified against Bakos Ferenc's *Idegen szavak és kifejezések
+szótára*, with hapaxes and the Zipfian head removed. That second cut is the interesting one
+— `internet`, `program` and `koncepció` are all in Bakos and all too common in Hungarian to
+be felt as foreign, so they are not in the list. See
+`experiments/loanwords/README.md` for the method, the parameters and two known limits.
+
+It is deliberately **not** inside `saphes.datasets`. Every other bundled dataset can be
+regenerated from a script in this repository; this one cannot, because the script reads a
+copyrighted dictionary that is not here. A generated literal nobody can reproduce would be
+worse than a file you load explicitly.
+
 ## Load one from a file
 
 ```python
