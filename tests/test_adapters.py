@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from saphes import DepToken, mean_dependency_distance
+from saphes import DepToken, mean_dependency_distance, mean_hierarchical_distance
 from saphes.adapters import from_conllu, from_spacy
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -222,6 +222,26 @@ class TestEngineParity:
         emtsv = mean_dependency_distance(from_conllu(EMTSV)).mdd
         spacy = mean_dependency_distance(huspacy_parses()).mdd
         assert emtsv != pytest.approx(spacy, abs=0.01)
+
+    def test_the_engines_invert_between_the_two_metrics(self) -> None:
+        """HuSpaCy trees are flatter with longer arcs; emtsv's are deeper with shorter.
+
+        This is the case Jing & Liu (2015) propose MHD for: the two metrics come
+        apart, and here they come apart *because of the annotation scheme* rather
+        than the text, since both engines read the same fifteen sentences.
+        """
+        emtsv, spacy = from_conllu(EMTSV), huspacy_parses()
+        assert mean_dependency_distance(spacy).mdd > mean_dependency_distance(emtsv).mdd
+        assert (
+            mean_hierarchical_distance(spacy).mhd
+            < mean_hierarchical_distance(emtsv).mhd
+        )
+
+    def test_emtsv_builds_deeper_trees(self) -> None:
+        assert (
+            mean_hierarchical_distance(from_conllu(EMTSV)).max_depth
+            > mean_hierarchical_distance(huspacy_parses()).max_depth
+        )
 
     def test_both_land_in_a_plausible_range(self) -> None:
         """Published MDD for European languages sits between about 2 and 3.

@@ -121,7 +121,8 @@ Every code block in the docs is executed by CI, so nothing there can drift.
 - [x] Phonotactically aware Hungarian letter counting — `sz` is one letter, `ssz` is two, and
       morpheme boundaries are handled by rule plus an attested table
 - [x] Optional Snowball stemming for callers with no lemmatiser, as a declared third unit
-- [x] Mean dependency distance, from any parser's output — `mean_dependency_distance`
+- [x] Mean dependency distance and mean hierarchical distance, from any parser's output
+- [x] Zero-dependency adapters for HuSpaCy/spaCy and CoNLL-U/emtsv
 - [ ] The same study for Ancient Greek, for the Homer project
 - [ ] POS-filtered diversity, once lemmas carry tags
 - [ ] MTLD, HD-D, vocd-D, Maas
@@ -134,8 +135,8 @@ Every code block in the docs is executed by CI, so nothing there can drift.
       Hungarian registers (Webcorpus, legal texts, literary prose, social media)
 - [ ] **Multilingual scaling:** test the agnostic MDD calculation engine on Universal
       Dependencies corpora across multiple languages
-- [ ] **Dependency motifs:** expand MDD into mean hierarchical distance (MHD) and chain
-      motif identification for advanced cognitive load mapping
+- [ ] **Dependency motifs:** chain motif identification for advanced cognitive load
+      mapping, extending the MDD/MHD pair (Jing & Liu 2017)
 
 **Maintenance**
 

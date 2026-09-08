@@ -63,9 +63,13 @@ from saphes.stem import hungarian_stems  # noqa: E402 - as above
 from saphes.syntax import (  # noqa: E402 - __version__ must precede these
     DepToken,
     MddResult,
+    MhdResult,
     dependency_distances,
+    hierarchical_distances,
     mdd_from_counts,
     mean_dependency_distance,
+    mean_hierarchical_distance,
+    mhd_from_counts,
 )
 
 __all__ = [
@@ -74,11 +78,13 @@ __all__ = [
     "DiversityResult",
     "LixResult",
     "MddResult",
+    "MhdResult",
     "ThresholdRecommendation",
     "__version__",
     "dependency_distances",
     "from_conllu",
     "from_spacy",
+    "hierarchical_distances",
     "hungarian_letter_count",
     "hungarian_letters",
     "hungarian_stems",
@@ -89,6 +95,8 @@ __all__ = [
     "mattr",
     "mdd_from_counts",
     "mean_dependency_distance",
+    "mean_hierarchical_distance",
+    "mhd_from_counts",
     "recommended_threshold",
     "rix",
     "sentences",
