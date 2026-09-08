@@ -111,10 +111,21 @@ dependency distances across an entire corpus, and none of them is visible in the
 Futrell et al. normalise their treebanks precisely for this reason and say so; we cannot,
 because we never see the corpus.
 
-`parse_source` records `"conllu"` or `"spacy"`, which is provenance about the *format*,
-not about the *scheme*, and it is not enough. **[needs human decision]** whether a
-free-text `scheme=` field should be added before 1.0, or whether that is a methods-section
-problem rather than a library problem.
+**Partly addressed in 0.2.0.** `parse_source` recorded the file *format* and was replaced
+by `parser`, free text, defaulting to `None`. The reasoning: nobody chooses "Prague
+coordination" as a separate decision, they run emtsv and get it — so the answerable question
+is *what did you run*, not *what convention does it follow*. `"conllu"` was equally true of
+emtsv, the Szeged treebank and UD Hungarian, which do not agree with each other.
+
+What that buys is visibility, not comparability. A result with `parser=None` is now visibly
+unlabelled; it is still on the caller to fill it in, and nothing validates what they type.
+The only real fix is Futrell's — normalise incoming parses to one canonical scheme before
+measuring — which means encoding conversion rules for coordination, adpositions, copulas
+and complementisers per source scheme. That is a project, not a parameter, and it is not
+planned.
+
+Adapters cannot help: a spaCy `Doc` does not carry its model name (only the `nlp` pipeline
+does), and emtsv's `tok-dep-conll` output has no comment lines to read.
 
 ### 4d. The lexicon is the only evidence, and its gaps are silent
 

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- The same calibration study for Ancient Greek, for the Homer project. The method transfers
+  unchanged; only the corpus differs.
+- Dependency motifs (Jing & Liu 2017), extending the MDD/MHD pair. Deferred rather than
+  rushed: it produces a distribution of chunk types rather than a score, so it needs a
+  corpus study to say anything.
+
+## [0.2.0] - 2026-09-08
+
+The Hungarian iteration and the syntactic-complexity expansion, together.
+
+saphes grows from two metric families to five. **Readability** (LIX/RIX) and **lexical
+diversity** (TTR/MATTR) are joined by **dependency distance**, **hierarchical distance** and
+the **loan-word ratio**, with zero-dependency adapters for HuSpaCy and CoNLL-U/emtsv. The
+core still declares `dependencies = []`, and a fresh interpreter still imports nothing
+heavier than the standard library.
+
+Every formula is taken from the paper that defines it and pinned to that paper's own worked
+example: LIX = 45.0 from Björnsson's counts, MDD = 1.17 and MHD = 2 from Jing & Liu (2015:
+164), MDD = 2.125 from Zhang & Zhou (2023). Neither dependency paper prints the tree behind
+its number; both were reconstructed by hand and both close.
+
+This is a 0.x release and the API is not frozen. `length_policy="graphemes"` may still be
+renamed, and `parser`, `LoanwordResult` and the adapters have not yet been exercised by
+homer, music_networks or kmdb_dashboard.
+
 ### Added — the loan-word ratio
 
 - `saphes.loanwords` — `loanword_ratio`, `loan_ratio_from_counts`, `LoanwordResult` and
@@ -73,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   spaCy model for the language — HuSpaCy for Hungarian. Choosing emtsv means choosing
   Prague-style coordination and numbers that will not line up with anyone else's.
 
-### Notes on the loan-word ratio### Notes on the loan-word ratio
+### Notes on the loan-word ratio
 
 - **The metric needs lemmas, and a surface stream fails silently.** `komputerekkel` misses a
   lexicon containing `komputer`, so the wrong stream produces no error and a plausible
@@ -354,11 +381,6 @@ are different annotation schemes, not two attempts at one answer.
 - Two of the thirteen `false_digraph_roots` proposed for this work were not shipped.
   `földzó` matches nothing in a 560-million-token corpus and `vízsu` matches nothing as a
   type; both are invented substring fragments rather than attested words.
-
-### Planned
-
-- The same calibration study for Ancient Greek, for the Homer project. The method transfers
-  unchanged; only the corpus differs.
 
 ## [0.1.0] - 2026-07-29
 
