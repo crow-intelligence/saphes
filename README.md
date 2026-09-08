@@ -121,9 +121,21 @@ Every code block in the docs is executed by CI, so nothing there can drift.
 - [x] Phonotactically aware Hungarian letter counting — `sz` is one letter, `ssz` is two, and
       morpheme boundaries are handled by rule plus an attested table
 - [x] Optional Snowball stemming for callers with no lemmatiser, as a declared third unit
+- [x] Mean dependency distance, from any parser's output — `mean_dependency_distance`
 - [ ] The same study for Ancient Greek, for the Homer project
 - [ ] POS-filtered diversity, once lemmas carry tags
 - [ ] MTLD, HD-D, vocd-D, Maas
+
+**Research**
+
+- [ ] **Diachronic analysis:** test MDD and loan word density changes on the ParlaMonitor
+      corpus across time
+- [ ] **Data diversity benchmarking:** benchmark MDD and idegenszó-arány across diverse
+      Hungarian registers (Webcorpus, legal texts, literary prose, social media)
+- [ ] **Multilingual scaling:** test the agnostic MDD calculation engine on Universal
+      Dependencies corpora across multiple languages
+- [ ] **Dependency motifs:** expand MDD into mean hierarchical distance (MHD) and chain
+      motif identification for advanced cognitive load mapping
 
 **Maintenance**
 

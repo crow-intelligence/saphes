@@ -7,12 +7,22 @@ to both produces no error, no NaN, just a plausible wrong number.
 
 If someone ever "helpfully" wires both metrics to a single token stream, the
 asymmetry tests here are what fail.
+
+``saphes.syntax`` adds a third stream that is not a token stream at all — it
+needs head indices, which no tokeniser produces. Its guard is at the bottom.
 """
 
 import pytest
 from hypothesis import given, settings
 
-from saphes import hungarian_stems, lexical_diversity, lix, word_length
+from saphes import (
+    DepToken,
+    hungarian_stems,
+    lexical_diversity,
+    lix,
+    mean_dependency_distance,
+    word_length,
+)
 from saphes.datasets import Sample, load_english, load_greek, load_hungarian
 from tests.strategies import inflected_pairs
 
@@ -203,3 +213,69 @@ class TestContractProperties:
             lexical_diversity(forms, unit="surface").tokens
             == lexical_diversity(lemmas, unit="lemma").tokens
         )
+
+
+class TestParseIsAThirdStream:
+    """MDD needs head indices; no token stream, lemma or surface, can supply them.
+
+    The failure this guards is worse than the lemma/surface mix-up, because a
+    parse stripped of its punctuation without re-indexing still *looks* like a
+    parse and still returns a number.
+    """
+
+    NIXON = [
+        DepToken(1, 2, False, "PROPN"),
+        DepToken(2, 3, False, "PROPN"),
+        DepToken(3, 0, False, "AUX"),
+        DepToken(4, 3, False, "PART"),
+        DepToken(5, 4, False, "VERB"),
+        DepToken(6, 5, False, "PROPN"),
+        DepToken(7, 5, False, "NOUN"),
+        DepToken(8, 3, True, "PUNCT"),
+    ]
+
+    def test_no_cross_wiring_from_the_readability_side(self) -> None:
+        with pytest.raises(TypeError):
+            lix(parses=[self.NIXON])  # type: ignore[call-arg]
+
+    def test_no_cross_wiring_from_the_diversity_side(self) -> None:
+        with pytest.raises(TypeError):
+            lexical_diversity(parses=[self.NIXON], unit="lemma")  # type: ignore[call-arg]
+
+    def test_mdd_takes_no_words_parameter(self) -> None:
+        """The parameter name is the enforcement mechanism, as it is for lix()."""
+        with pytest.raises(TypeError):
+            mean_dependency_distance(words=["a", "b"])  # type: ignore[call-arg]
+
+    def test_mdd_takes_no_unit_parameter(self) -> None:
+        with pytest.raises(TypeError):
+            mean_dependency_distance([self.NIXON], unit="surface")  # type: ignore[call-arg]
+
+    def test_a_lemma_stream_cannot_reach_mdd(self) -> None:
+        sample = load_hungarian()
+        with pytest.raises((TypeError, ValueError)):
+            mean_dependency_distance([sample.lemmas])  # type: ignore[arg-type]
+
+    def test_a_surface_stream_cannot_reach_mdd(self) -> None:
+        sample = load_hungarian()
+        with pytest.raises((TypeError, ValueError)):
+            mean_dependency_distance([sample.forms])  # type: ignore[arg-type]
+
+    def test_a_hand_stripped_parse_is_refused(self) -> None:
+        """Punctuation removed without renumbering is the silent-failure case."""
+        stripped = [token for token in self.NIXON if not token.is_punct]
+        assert stripped == self.NIXON[:-1]  # the period was last, so nothing shifts
+        gapped = [token for token in self.NIXON if token.index != 3]
+        with pytest.raises(ValueError, match="must run 1..n"):
+            mean_dependency_distance([gapped])
+
+    def test_the_parse_carries_information_no_token_stream_has(self) -> None:
+        """Shuffling heads changes MDD while leaving every token untouched."""
+        rewired = [
+            DepToken(
+                t.index, 0 if t.head == 0 else 1 + (t.index % 2), t.is_punct, t.pos
+            )
+            for t in self.NIXON
+        ]
+        original = mean_dependency_distance([self.NIXON]).mdd
+        assert mean_dependency_distance([rewired]).mdd != pytest.approx(original)

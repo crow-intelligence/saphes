@@ -10,6 +10,8 @@ import string
 
 from hypothesis import strategies as st
 
+from saphes import DepToken
+
 ascii_word = st.text(alphabet=string.ascii_lowercase, min_size=1, max_size=12)
 """A lowercase ASCII word (1-12 letters)."""
 
@@ -80,3 +82,29 @@ def inflected_pairs(draw: st.DrawFn) -> list[tuple[str, str]]:
     """
     stems = draw(st.lists(hungarian_stem, min_size=1, max_size=100))
     return [(stem + draw(hungarian_suffix), stem) for stem in stems]
+
+
+@st.composite
+def dependency_tree(draw: st.DrawFn) -> list[DepToken]:
+    """A structurally valid dependency parse: one root, no cycles, indices 1..n.
+
+    Built rather than filtered. Each node is attached to a node already placed,
+    so acyclicity is a property of the construction and Hypothesis never has to
+    discard a draw. Punctuation is drawn independently of structure, so a
+    punctuation token can be an interior node — which is what exercises the
+    orphaned-arc path in ``punctuation="collapse"``.
+    """
+    size = draw(st.integers(min_value=1, max_value=12))
+    order = draw(st.permutations(range(1, size + 1)))
+    heads = {order[0]: 0}
+    placed = [order[0]]
+    for node in order[1:]:
+        heads[node] = draw(st.sampled_from(placed))
+        placed.append(node)
+    flags = draw(st.lists(st.booleans(), min_size=size, max_size=size))
+    return [
+        DepToken(
+            index, heads[index], flags[index - 1], "PUNCT" if flags[index - 1] else "X"
+        )
+        for index in range(1, size + 1)
+    ]
