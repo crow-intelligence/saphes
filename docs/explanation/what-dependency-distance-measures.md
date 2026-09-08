@@ -92,6 +92,45 @@ Writing a single number without saying which one you computed is how two honest
 analyses of the same corpus come to disagree by a quarter of a point. The choice is
 recorded on the result for exactly that reason.
 
+## The vertical dimension
+
+Dependency distance is a measure along the string. Jing & Liu's own contribution to the
+literature is the observation that it misses a whole axis: two sentences can share an MDD
+while one is a flat chain of long-range links and the other a deep nest of local ones.
+Their answer is **mean hierarchical distance**, the average path length from the root down
+to each node.
+
+```pycon
+>>> from saphes import hierarchical_distances, mean_hierarchical_distance
+>>> nixon = [
+...     DepToken(1, 2, False, "PROPN"),
+...     DepToken(2, 3, False, "PROPN"),
+...     DepToken(3, 0, False, "AUX"),
+...     DepToken(4, 3, False, "PART"),
+...     DepToken(5, 4, False, "VERB"),
+...     DepToken(6, 5, False, "PROPN"),
+...     DepToken(7, 5, False, "NOUN"),
+...     DepToken(8, 3, True, "PUNCT"),
+... ]
+>>> hierarchical_distances(nixon)
+[2, 1, 1, 2, 3, 3]
+>>> mean_hierarchical_distance([nixon]).mhd
+2.0
+
+```
+
+The same exclusion applies and for the same reason: the root sits at 0 and is left out of
+the average, not averaged in as a zero. The difference from MDD is that hierarchical
+distance has **no index space at all** — it counts edges, not positions — so the
+punctuation policies that re-index for MDD collapse to a single question here, namely
+whether punctuation is counted.
+
+That the two metrics separate is not a theoretical point. Running HuSpaCy and emtsv over
+the same fifteen Hungarian sentences, the two engines **invert**: HuSpaCy gives the higher
+MDD and the lower MHD, emtsv the reverse. Neither parser is wrong. They embody different
+annotation schemes, and those schemes trade flatness against depth — which is a reason to
+report both numbers, and a reason to record which parser produced them.
+
 ## The strongest objection
 
 Futrell, Mahowald & Gibson (2015) — the largest study of dependency length there is —
@@ -131,7 +170,7 @@ minimization in 37 languages. *PNAS* 112(33), 10336–10341.
 
 Jing, Y. & Liu, H. (2015). Mean Hierarchical Distance: Augmenting Mean Dependency
 Distance. *Proceedings of the Third International Conference on Dependency Linguistics*,
-161–170.
+161–170. — the source of both formulas implemented here.
 
 Liu, H. (2008). Dependency Distance as a Metric of Language Comprehension Difficulty.
 *Journal of Cognitive Science* 9(2), 159–191.

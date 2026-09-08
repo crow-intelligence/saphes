@@ -10,7 +10,7 @@
 |---|---|
 | [`readability`](readability.md) | `lix`, `rix`, `lix_from_counts`, `word_length`, `interpret_lix`, `LIX_BANDS` |
 | [`diversity`](diversity.md) | `lexical_diversity`, `ttr_from_counts`, `mattr` |
-| [`syntax`](syntax.md) | `mean_dependency_distance`, `dependency_distances`, `mdd_from_counts`, `DepToken` |
+| [`syntax`](syntax.md) | `mean_dependency_distance`, `mean_hierarchical_distance`, `dependency_distances`, `hierarchical_distances`, the two kernels, `DepToken` |
 | [`adapters`](adapters.md) | `from_conllu`, `from_spacy` — parser output in, `DepToken` out |
 | [`segment`](segment.md) | `words`, `sentences` — the dependency-free splitters |
 | [`hungarian`](hungarian.md) | `hungarian_letters`, `hungarian_letter_count`, the boundary table |
