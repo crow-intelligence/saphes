@@ -56,13 +56,23 @@ from saphes.readability import (  # noqa: E402 - __version__ must precede these
 )
 from saphes.segment import sentences, words  # noqa: E402 - as above
 from saphes.stem import hungarian_stems  # noqa: E402 - as above
+from saphes.syntax import (  # noqa: E402 - __version__ must precede these
+    DepToken,
+    MddResult,
+    dependency_distances,
+    mdd_from_counts,
+    mean_dependency_distance,
+)
 
 __all__ = [
     "LIX_BANDS",
+    "DepToken",
     "DiversityResult",
     "LixResult",
+    "MddResult",
     "ThresholdRecommendation",
     "__version__",
+    "dependency_distances",
     "hungarian_letter_count",
     "hungarian_letters",
     "hungarian_stems",
@@ -71,6 +81,8 @@ __all__ = [
     "lix",
     "lix_from_counts",
     "mattr",
+    "mdd_from_counts",
+    "mean_dependency_distance",
     "recommended_threshold",
     "rix",
     "sentences",

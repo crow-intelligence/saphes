@@ -78,6 +78,7 @@ nav:
       - API:
           - reference/readability.md
           - reference/diversity.md
+          - reference/syntax.md
           - reference/calibration.md
           - reference/segment.md
           - reference/hungarian.md
@@ -89,6 +90,7 @@ nav:
           - reference/glossary.md
   - Explanation:
       - explanation/two-token-streams.md
+      - explanation/what-dependency-distance-measures.md
       - explanation/stemming-is-not-lemmatisation.md
       - explanation/why-the-threshold-moves.md
       - explanation/what-a-hungarian-lix-score-means.md

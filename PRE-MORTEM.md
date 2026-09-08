@@ -81,6 +81,41 @@ another tool may still disagree with us for reasons that have nothing to do with
 
 Direction: the score is the number to compare; the label is a convenience. The docs say so.
 
+### 4b. A parse arrives already stripped of its punctuation
+
+The MDD default (`punctuation="collapse"`) removes punctuation and renumbers what is
+left. A caller whose pipeline already did that hands saphes a sentence whose indices are
+correct and contiguous, and gets the right answer. A caller whose pipeline removed the
+tokens but *kept* the original numbering hands saphes gaps — and that raises, loudly, by
+design.
+
+The case with no defence is the third one: a caller who removed punctuation, renumbered,
+and *also* left `is_punct=False` everywhere gets a correct number, which is fine — and a
+caller who did all that and then passes `punctuation="ignore"` gets the same number too,
+because there is nothing left to ignore. So the policy silently stops mattering once the
+input has been pre-cleaned, and `punctuation_dropped=0` on the result is the only signal.
+It is on the result for that reason.
+
+Surfaces as: two projects reporting different Hungarian MDDs from the same treebank,
+where the difference is entirely in what their loaders did before saphes saw the trees.
+
+Direction: `punctuation_dropped` and `orphaned_arcs` are the fields to check first when
+two MDDs disagree. The docstring says so; nobody reads a field they did not know to look
+for, which is the recurring theme of this document.
+
+### 4c. MDD is a property of the annotation scheme as much as of the text
+
+Whether a Hungarian preverb attaches to its verb, whether prepositions head their objects
+or the reverse, whether coordination is Stanford-style or content-head — each changes
+dependency distances across an entire corpus, and none of them is visible in the score.
+Futrell et al. normalise their treebanks precisely for this reason and say so; we cannot,
+because we never see the corpus.
+
+`parse_source` records `"conllu"` or `"spacy"`, which is provenance about the *format*,
+not about the *scheme*, and it is not enough. **[needs human decision]** whether a
+free-text `scheme=` field should be added before 1.0, or whether that is a methods-section
+problem rather than a library problem.
+
 ---
 
 ## Medium-impact fragilities

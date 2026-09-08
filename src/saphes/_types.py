@@ -65,3 +65,44 @@ LixBand: TypeAlias = Literal[
 Calibrated for Swedish and Germanic prose at a long-word threshold of 6. It is
 meaningless at any other threshold — see ``readability.LIX_BANDS``.
 """
+
+PunctuationPolicy: TypeAlias = Literal["collapse", "ignore", "keep"]
+"""How punctuation is treated when measuring dependency distance.
+
+``"collapse"`` is the default and the only one the literature supports: the
+punctuation tokens are removed and the remaining tokens **re-indexed**, so
+distances are measured across the punctuation-free sequence. Jing & Liu (2015)
+report sentence length as "SL (no punctuations)", which is only coherent on a
+re-indexed sequence, and Futrell et al. (2015) drop "any nodes representing
+punctuation or root nodes, nor arcs between them".
+
+``"ignore"`` keeps the original index space and merely skips the punctuation
+tokens' own arcs. No paper in ``papers/`` describes this; it is what software
+produces by filtering a score list without re-indexing, and it reports a
+**larger** MDD than ``"collapse"`` for any sentence with medial punctuation. It
+exists here to reproduce such an implementation, not because it is defensible.
+
+``"keep"`` counts every token, punctuation included. Furthest from the
+literature, and offered only so a disagreement can be diagnosed rather than
+guessed at.
+"""
+
+DepAggregation: TypeAlias = Literal["macro", "micro"]
+"""How per-sentence dependency distances combine into one number for a text.
+
+``"macro"`` is the default and matches Jing & Liu (2015: 164) equations (3) and
+(4): average the per-sentence means, so every sentence weighs the same
+regardless of length. ``"micro"`` pools every dependency pair in the text and
+divides once, so long sentences dominate.
+
+They are different numbers, not different roundings of one number. A naive
+implementation produces ``"micro"`` by accident, which is why the choice is
+recorded on the result rather than left implicit.
+"""
+
+ParseSource: TypeAlias = Literal["conllu", "spacy", "provided"]
+"""Where a dependency parse came from.
+
+Provenance only — it never changes the arithmetic. ``"provided"`` means the
+caller built the token sequence themselves rather than going through an adapter.
+"""

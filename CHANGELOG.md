@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — syntactic complexity
+
+- `saphes.syntax` — mean dependency distance, the first metric here that measures
+  structure rather than form. `mean_dependency_distance` takes parsed sentences and
+  returns an `MddResult`; `dependency_distances` exposes the individual arcs;
+  `mdd_from_counts` is the keyword-only arithmetic kernel. `DepToken` is the input
+  contract — a `NamedTuple` of `(index, head, is_punct, pos)`, so any parser's output can
+  be adapted without importing anything from saphes.
+
+  The implementation follows equation (1) of Jing & Liu (2015: 163), which attributes the
+  metric to Liu (2008: 170). Both of the worked examples in the literature are pinned as
+  doctests and reproduce exactly: Jing & Liu's *"Mr. Nixon was to leave China today ."*
+  at 1.17, and Zhang & Zhou's (2023) *"The quick brown fox jumped over the lazy dog."* at
+  2.125.
+
+- Three conventions are parameterised rather than hardcoded, because each is a place where
+  published implementations silently disagree:
+
+  - **`punctuation`** — `"collapse"` (the default) removes punctuation and **re-indexes**,
+    which is what all three MDD papers do. `"ignore"` keeps the original index space and
+    reports a larger number for any sentence with medial punctuation; no paper describes
+    it, but software produces it, so it is available for diagnosing a disagreement.
+    `"keep"` counts everything.
+  - **`aggregation`** — `"macro"` (the default) averages per-sentence means, per Jing &
+    Liu equations (3) and (4). `"micro"` pools every pair. They are different numbers; a
+    naive implementation produces `"micro"` by accident.
+  - **`min_sentence_length`** and **`require_single_root`** — the sentence filters used by
+    Jing & Liu and by Futrell et al. respectively. Both default to off, because they are
+    corpus-preparation choices rather than properties of the metric, and both are recorded
+    on the result when used.
+
+### Notes on dependency distance
+
+- **The root is excluded from the denominator**, not just from the sum: *n* is the number
+  of dependency **pairs**, so seven words give six. Dividing by the word count instead is
+  a systematic deflation, and `TestPublishedAnchors` pins it.
+- **A parse is a third stream, not a third token list.** `tests/test_contracts.py` gained
+  `TestParseIsAThirdStream` to guard it: `lix(parses=...)` and
+  `lexical_diversity(parses=...)` are `TypeError`s, and a token index sequence with gaps —
+  punctuation removed without renumbering — raises rather than reporting inflated
+  distances.
+- **Futrell et al. (2015) argue against MDD**, preferring summed dependency length
+  regressed on sentence length. They are cited for the arc-length definition, and their
+  objection is stated in the explanation page rather than omitted.
+- Non-projective sentences are measured normally, which Jing & Liu (2015: 164) explicitly
+  license. There is no projectivity filter, and Hungarian needs there not to be one.
+
 ### Added
 
 - `saphes.hungarian` — a phonotactically aware Hungarian letter counter. `hungarian_letters`
