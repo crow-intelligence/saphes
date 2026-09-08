@@ -109,6 +109,65 @@ separates them.
 `dolog`, `szabad`, `úr`, `törvény`, `szent`, `kormány`, `munka`, `pénz`, `király`, `betű` —
 core vocabulary throughout, and correctly excluded.
 
+## The shipped list
+
+`results/idegenszavak.txt` — **15,203 Hungarian lemmas**, with `results/idegenszavak.json`
+recording how they were chosen.
+
+**This is not Bakos, and the difference is the selection principle.** Bakos selects for
+lexicographic completeness: 22,882 single-word headwords, most of them technical vocabulary
+a reader never meets. This list selects by **frequency rank in the MOKK Hungarian
+Webcorpus**, and uses Bakos only to *verify* that a candidate is a foreign word at all. The
+corpus chooses; the dictionary checks.
+
+Two cuts, both with a linguistic reason:
+
+- **Hapaxes and absent words go.** A word occurring once in 1.8 billion tokens says nothing
+  about running Hungarian. That removes 4,471 candidates.
+- **The Zipfian head goes**, on the reading that a word the corpus uses that heavily is
+  ordinary vocabulary, not an *idegen szó*. `internet` (172 per million), `program` (278)
+  and `koncepció` (14) are all in Bakos and none is felt as foreign today. Bakos cannot make
+  this call — a dictionary of foreign words keeps a word once it is in. The corpus can.
+
+Before either cut, five structural filters remove things that are not words of running
+Hungarian: `röv` entries (abbreviations and chemical symbols — Bakos's `k` for *kilo-*
+inherits 150 million hits from the Hungarian letter), affixes, headwords under four
+characters, capitalised proper nouns, and continuation lines misread as headwords.
+
+### Why the head fraction is 2%, not Pareto's 20%
+
+Pareto describes a whole vocabulary. This ranking is not one — it is already filtered to
+Bakos's foreign words, so its distribution is shifted far down before any cut. Taking 20% of
+*it* removes `konszenzus`, `prioritás` and `implementáció`, and scores a sentence full of
+them at **zero**. At 2% the cut falls where it was meant to.
+
+| head dropped | lemmas | keeps |
+|---:|---:|---|
+| 2% | 15,203 | konszenzus, prioritás, implementáció, alkohol |
+| 5% | 14,738 | prioritás, implementáció |
+| 10% | 13,962 | implementáció |
+| 20% | 12,411 | none of them |
+
+### Two known limits
+
+- **The boundary is arbitrary**, because frequencies tie. `historizmus` and `konszenzus`
+  both occur 711 times; only one can fall above the line.
+- **The corpus is web text containing English.** `guide`, `speed`, `museum`, `offer` and
+  `band` are all genuine Bakos headwords, but their counts are earned by English prose
+  rather than Hungarian usage.
+
+### Attribution
+
+Verified against **Bakos Ferenc, *Idegen szavak és kifejezések szótára*** (Akadémiai Kiadó).
+Bakos is copyrighted and is **not** redistributed here, in whole or in part: it is consulted
+as the criterion for what counts as a foreign word. Frequencies are from the **MOKK Hungarian
+Webcorpus 2.2** (BME MOKK), 1,782,720,285 tokens.
+
+The pipeline that reads the dictionary lives in `data_collection_and_verification/` and is
+gitignored, as is the scan in `data/`.
+
+---
+
 ### B. What may actually be shipped — sharper now, not easier
 
 Three sources, three licences, and they trade quality against redistributability:

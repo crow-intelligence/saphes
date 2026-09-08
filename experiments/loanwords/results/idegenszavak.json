@@ -1,0 +1,21 @@
+{
+  "lemmas": 15203,
+  "drop_top_fraction": 0.02,
+  "min_frequency": 2,
+  "candidates_ranked": 15513,
+  "head_dropped": 310,
+  "corpus": "MOKK Hungarian Webcorpus 2.2",
+  "corpus_tokens": 1782720285,
+  "verified_against": "Bakos Ferenc, Idegen szavak és kifejezések szótára (Akadémiai Kiadó)",
+  "rejected": {
+    "shorter than four characters": 745,
+    "proper noun": 1198,
+    "continuation (opens mid-entry)": 175,
+    "continuation (out of alphabetical order)": 267,
+    "affix": 427,
+    "abbreviation or symbol (röv)": 86,
+    "below 2 occurrences (hapax or absent)": 4471,
+    "in the top 2% by frequency (ordinary vocabulary)": 310
+  },
+  "method": "Candidates are Webcorpus word forms that Bakos lists as foreign. Selection is by frequency rank, not by Bakos's own inclusion: hapaxes are dropped, and so is the Zipfian head, on the reading that a word the corpus uses that heavily is ordinary vocabulary rather than an idegen szo."
+}
