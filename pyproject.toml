@@ -1,6 +1,6 @@
 [project]
 name = "saphes"
-version = "0.1.0"
+version = "0.2.0"
 description = "Readability (LIX) and lexical diversity (TTR/MATTR) with the parameters other implementations hardcode"
 readme = "README.md"
 authors = [
