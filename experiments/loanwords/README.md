@@ -82,10 +82,18 @@ assimilated that no speaker hears it as foreign — from **idegen szó**, a word
 foreign, and only a lexicographer draws that line.
 
 **Bakos is in copyright**, and in the EU its headword *selection* carries database right on
-top of that. So it is used as a **criterion, never as a source**: nobody scrapes it and no
-copy of its word list enters this repository. `candidates.tsv` is adjudicated against it by
-hand, and `decisions.tsv` — the verdicts — is the work product, exactly as
-`hungarian_boundaries/results/decisions.tsv` was.
+top of that. Nothing from it enters this repository: the scan and the pipeline that reads it
+live in `data/` and `data_collection_and_verification/`, both gitignored.
+
+Bakos has now been read end to end rather than consulted entry by entry. It is a 745-page
+scan with no text layer, so the pipeline OCRs it (tesseract 5.3.4, Hungarian model, 300 dpi)
+and recovers entries from the **hanging indent** that separates a headword from its
+continuation lines. That yields **22,882 single-word headwords** and 8,387 multiword
+phrases, with Webcorpus frequencies attached and 0 where a headword does not occur.
+
+That changes what `candidates.tsv` is for. Bakos answers the *idegen szó* question directly,
+so hand-adjudicating a Wiktionary candidate list is no longer the route to the answer — it is
+now the route to a **redistributable** one, which is a different problem. See B.
 
 Two findings from the data make the case that this had to be a lexicographic judgement
 rather than a rule:
@@ -101,18 +109,46 @@ separates them.
 `dolog`, `szabad`, `úr`, `törvény`, `szent`, `kormány`, `munka`, `pénz`, `király`, `betű` —
 core vocabulary throughout, and correctly excluded.
 
-### B. Whether a CC BY-SA asset belongs in an MIT repository
+### B. What may actually be shipped — sharper now, not easier
 
-The numbers make this concrete rather than theoretical: the CC0 option yields **20**
-entries. Any usable lexicon is CC BY-SA 4.0. The options are
+Three sources, three licences, and they trade quality against redistributability:
 
-- ship the derived lexicon with an attribution block and a stated licence for that file,
-  accepting a non-MIT asset in the tree;
-- keep the lexicon out of the repository and have users run these scripts, as the corpora
-  in `lix_calibration/` are handled;
-- ship nothing and leave `loanword_ratio` lexicon-agnostic, which is what it does today.
+| source | entries | licence | shippable? |
+|---|---:|---|---|
+| Wikidata lexemes | 17 | CC0 | yes, and useless |
+| en.wiktionary *borrowed* | 2,492 | CC BY-SA 4.0 | yes, with attribution; non-MIT asset |
+| **Bakos** | **22,882** | **© Akadémiai Kiadó** | **no** |
 
-The third is the current state and costs nothing to keep.
+Bakos is nine times the size of the Wiktionary list and is the actual authority — and it is
+the one thing that cannot be redistributed at all. So the best list and the shippable list
+are not the same list.
+
+What Bakos *can* do without being copied is **adjudicate**. Measured against it, the
+Wiktionary borrowed set splits sharply:
+
+| stratum | confirmed by Bakos |
+|---|---:|
+| ancient donors (Slavic, Turkic, Iranian…) | **2.9%** (13/444) |
+| modern donors (Latin, German, English…) | 60.8% (1,082/1,779) |
+| unclassified | 34.2% |
+
+The ancient figure is the striking one: Bakos independently rejects 97% of exactly the
+stratum the donor-era proxy predicted it would, which is about as good a cross-validation as
+this study can get. And it rejects `iskola`, `október` and `autó` while accepting `internet`
+and `abbé` — the cases no rule could separate.
+
+So a fourth option exists, and it is the one worth a decision:
+
+- ship the **Wiktionary-derived subset that Bakos confirms** — CC BY-SA material, with the
+  *selection* informed by Bakos. Roughly 1,100 lemmas of the modern stratum. Better than
+  Wiktionary alone; a fraction of Bakos; and legally grey, because a selection made by
+  applying a copyrighted work's selection is not obviously a new one. **That greyness is
+  the decision, and it is not mine to make.**
+
+The other options remain: ship the CC BY-SA list unfiltered with attribution; keep any list
+out of the repository and have users build it, as `lix_calibration/` handles its corpora; or
+ship nothing and leave `loanword_ratio` lexicon-agnostic. **The last is the current state and
+costs nothing to keep.**
 
 ## What this study does not do
 

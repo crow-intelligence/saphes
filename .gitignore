@@ -40,3 +40,13 @@ experiments/loanwords/data/
 .claude/
 
 papers/
+
+# Source dictionaries — copyrighted reference works, never version controlled.
+# Bakos is the criterion for what counts as an idegen szo; it is read, never
+# redistributed, and neither is anything mined from it.
+data/
+
+# The Bakos mining pipeline: OCR output, intermediate text, extracted entries
+# and the local OCR toolchain. All derived from a copyrighted dictionary, so
+# none of it belongs in the repository.
+data_collection_and_verification/
