@@ -32,5 +32,11 @@ mutants/
 # controlled. The committed artifact is the results JSON, not the corpus.
 experiments/lix_calibration/data/
 
+# Wiktionary and Wikidata dumps for the loan-word study. Re-fetchable, and
+# CC BY-SA rather than MIT, so the raw material stays out of the repo.
+experiments/loanwords/data/
+
 # Local harness / session state
 .claude/
+
+papers/

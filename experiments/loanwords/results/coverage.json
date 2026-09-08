@@ -1,0 +1,103 @@
+{
+  "generated": "2026-09-08T09:04:50+00:00",
+  "sources": {
+    "wiktionary-borrowed": {
+      "licence": "CC BY-SA 4.0",
+      "categories": 71,
+      "unique_lemmas": 2492
+    },
+    "wiktionary-derived": {
+      "licence": "CC BY-SA 4.0",
+      "categories": 296,
+      "unique_lemmas": 5649
+    },
+    "wiktionary-other": {
+      "licence": "CC BY-SA 4.0",
+      "unique_lemmas": 50
+    },
+    "wikidata": {
+      "licence": "CC0",
+      "lexemes": 101,
+      "with_etymology": 17
+    }
+  },
+  "overlap": {
+    "borrowed_in_derived": 2492,
+    "borrowed_only": 0,
+    "wikidata_in_borrowed": 15
+  },
+  "strata": {
+    "ancient_donors": 451,
+    "modern_donors": 1779,
+    "unclassified": 269
+  },
+  "top_donors": [
+    [
+      "German",
+      725
+    ],
+    [
+      "Latin",
+      459
+    ],
+    [
+      "English",
+      329
+    ],
+    [
+      "Slavic languages",
+      179
+    ],
+    [
+      "Turkic languages",
+      120
+    ],
+    [
+      "French",
+      102
+    ],
+    [
+      "Italian",
+      79
+    ],
+    [
+      "South Slavic languages",
+      54
+    ],
+    [
+      "Ottoman Turkish",
+      51
+    ],
+    [
+      "Serbo-Croatian",
+      46
+    ],
+    [
+      "Slovak",
+      39
+    ],
+    [
+      "Bavarian",
+      36
+    ],
+    [
+      "Austrian German",
+      33
+    ],
+    [
+      "New Latin",
+      33
+    ],
+    [
+      "Medieval Latin",
+      31
+    ]
+  ],
+  "filtered_out": {
+    "lemma": 11750,
+    "proper-noun": 697,
+    "affix": 133,
+    "multiword": 38,
+    "non-alphabetic": 2
+  }
+}
