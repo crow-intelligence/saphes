@@ -95,15 +95,23 @@ Hypothesis property that claimed native-alphabet words never trip the heuristic;
 was false and the counter-example arrived in one draw. Mitigations: off by default,
 `pos_tags` excludes proper nouns, `__repr__` warns, `patterns=` makes dropping it one line.
 
-**2. Which vocabulary counts as *idegen szó*?** The ancient donor stratum yields `ablak`,
-**`apa`** (*father*), `asztal`, `bab`; the modern one yields `abakusz`, `aberráció`,
-`abdominális`. A lexicon from etymology fields measures **etymological origin**, not
-*idegenszó-arány*. Both are publishable; they are not the same number. Wants a Hungarian
-speaker, with an audit trail like `hungarian_boundaries/results/decisions.tsv`.
+**2. ~~Which vocabulary counts as *idegen szó*?~~ Decided: Bakos.** The authority is Bakos
+Ferenc, *Idegen szavak és kifejezések szótára* (Akadémiai Kiadó) — a word is an idegen szó
+if Bakos lists it. The data made clear this could not be a rule: ranked by frequency the
+"modern donor" stratum opens with every Latin month name plus `iskola`, `autó` and `pont`,
+sitting beside `internet` and `regisztráció`. **Bakos is in copyright**, and in the EU its
+headword selection carries database right, so it is used as a *criterion, never a source*:
+`candidates.tsv` (2,506 rows, frequency-ordered) is adjudicated by hand and `decisions.tsv`
+is the work product. **What remains is the adjudication itself**, plus how deep to take
+it — the frequency distribution is Zipfian, so a few hundred entries cover most running
+text, and `apply_decisions.py` reports what share of candidate token frequency the accepted
+set carries.
 
-**3. Does a CC BY-SA asset belong in an MIT repository?** Forced by the numbers: the CC0
-option (Wikidata) yields **17** usable entries against Wiktionary's **2,492**. Options are
-in `experiments/loanwords/README.md`. Current state — no bundled lexicon, metric
+**3. Does a CC BY-SA asset belong in an MIT repository?** Still open, and forced by the
+numbers: the CC0 option (Wikidata) yields **17** usable entries against Wiktionary's
+**2,492**. Note this survives the Bakos decision — Bakos supplies the *verdicts*, but the
+*candidate set* is still Wiktionary-derived. Options are in
+`experiments/loanwords/README.md`. Current state — no bundled lexicon, metric
 lexicon-agnostic — costs nothing to keep.
 
 **4. Should `parse_source` record the annotation *scheme*?** It records the *format*
