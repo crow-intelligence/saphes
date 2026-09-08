@@ -70,6 +70,35 @@ this one wants head indices, and no amount of tokenising will produce them. Use
 :mod:`saphes.adapters` to convert a parser's output, or build
 :class:`DepToken` sequences yourself.
 
+**Record which parser produced the trees.** The score depends on it, and not
+only through parser quality: a parser carries the annotation convention of the
+treebank it was trained on, and that convention decides *which word is the head*
+— which is the entire input to a distance measure.
+
+For Hungarian this is not hypothetical. HuSpaCy follows Universal Dependencies,
+where the first conjunct heads a coordination; emtsv follows the Prague
+convention, where the conjunction heads it. On one sentence of the fixture
+corpus, *"A bíróság a felperes keresetét elutasítja, és kötelezi a perköltség
+megfizetésére"*, they agree about every word except three::
+
+    token          HuSpaCy (UD)        emtsv (Prague)
+    és             -> kötelezi         -> elutasítja
+    kötelezi       -> elutasítja       -> és
+    .              -> elutasítja       -> ROOT
+
+    MDD             1.600               1.500
+
+Same words, same formula, 6.7% apart. Neither parser is wrong; they were trained
+to different conventions. Across the whole fixture corpus the gap is 1.6845
+against 1.5328, and the two engines *invert* on hierarchical distance.
+
+So ``parser=`` is free text, and it is the field most worth filling: two MDDs are
+comparable only if they came from the same convention. Where you have a choice
+and no reason to prefer otherwise, the spaCy model for the language is the
+sensible default — for Hungarian that is HuSpaCy, and choosing emtsv instead
+means choosing Prague-style trees and numbers that will not line up with anyone
+else's.
+
 Note that Futrell et al. (2015) argue *against* summarising with a mean at all,
 preferring summed dependency length regressed on sentence length, because
 "summary measures that are not a function of length fall prey to inaccuracy due
@@ -84,7 +113,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, NamedTuple
 
 import saphes
-from saphes._types import DepAggregation, ParseSource, PunctuationPolicy
+from saphes._types import DepAggregation, PunctuationPolicy
 
 __all__ = [
     "DepToken",
@@ -424,7 +453,11 @@ class MddResult:
             countable pair.
         min_sentence_length: The filter applied, in non-punctuation tokens. 0
             means no filter.
-        parse_source: Where the parse came from. Provenance only.
+        parser: What produced the parse, e.g. ``"huspacy hu_core_news_md
+            3.8.0"`` or ``"emtsv tok-dep-conll"``. Provenance only — it never
+            touches the arithmetic — but **the single most important thing to
+            record**, because the parser carries its annotation convention with
+            it and the convention changes the score. See the module docstring.
         saphes_version: Version of saphes that produced the result.
     """
 
@@ -440,7 +473,7 @@ class MddResult:
     roots: int
     skipped_sentences: int
     min_sentence_length: int
-    parse_source: ParseSource
+    parser: str | None
     saphes_version: str
 
     @property
@@ -514,7 +547,7 @@ def mean_dependency_distance(
     aggregation: DepAggregation = "macro",
     min_sentence_length: int = 0,
     require_single_root: bool = False,
-    parse_source: ParseSource = "provided",
+    parser: str | None = None,
 ) -> MddResult:
     """Measure mean dependency distance over a sequence of parsed sentences.
 
@@ -534,7 +567,9 @@ def mean_dependency_distance(
             choice, not a property of the metric.
         require_single_root: Discard sentences with more than one root, as
             Futrell et al. (2015) do. Defaults to ``False``.
-        parse_source: Provenance label recorded on the result.
+        parser: What produced the parse. Provenance only, and the field most
+            worth filling in: two parsers can score the same text differently
+            because they follow different head conventions.
 
     Returns:
         An :class:`MddResult` carrying the score, every count behind it, and
@@ -707,7 +742,7 @@ aggregation='macro')
         roots=roots,
         skipped_sentences=skipped,
         min_sentence_length=min_sentence_length,
-        parse_source=parse_source,
+        parser=parser,
         saphes_version=saphes.__version__,
     )
 
@@ -919,7 +954,11 @@ class MhdResult:
         roots: Tokens with ``head=0`` across the contributing sentences.
         skipped_sentences: Sentences that contributed nothing.
         min_sentence_length: The filter applied. 0 means no filter.
-        parse_source: Where the parse came from. Provenance only.
+        parser: What produced the parse, e.g. ``"huspacy hu_core_news_md
+            3.8.0"`` or ``"emtsv tok-dep-conll"``. Provenance only — it never
+            touches the arithmetic — but **the single most important thing to
+            record**, because the parser carries its annotation convention with
+            it and the convention changes the score. See the module docstring.
         saphes_version: Version of saphes that produced the result.
     """
 
@@ -936,7 +975,7 @@ class MhdResult:
     roots: int
     skipped_sentences: int
     min_sentence_length: int
-    parse_source: ParseSource
+    parser: str | None
     saphes_version: str
 
     def to_dict(self) -> dict[str, object]:
@@ -971,7 +1010,7 @@ def mean_hierarchical_distance(
     aggregation: DepAggregation = "macro",
     min_sentence_length: int = 0,
     require_single_root: bool = False,
-    parse_source: ParseSource = "provided",
+    parser: str | None = None,
 ) -> MhdResult:
     """Measure mean hierarchical distance over a sequence of parsed sentences.
 
@@ -993,7 +1032,9 @@ def mean_hierarchical_distance(
             non-punctuation tokens. Defaults to 0, meaning no filter.
         require_single_root: Discard sentences with more than one root.
             Defaults to ``False``.
-        parse_source: Provenance label recorded on the result.
+        parser: What produced the parse. Provenance only, and the field most
+            worth filling in: two parsers can score the same text differently
+            because they follow different head conventions.
 
     Returns:
         An :class:`MhdResult`.
@@ -1137,6 +1178,6 @@ def mean_hierarchical_distance(
         roots=roots,
         skipped_sentences=skipped,
         min_sentence_length=min_sentence_length,
-        parse_source=parse_source,
+        parser=parser,
         saphes_version=saphes.__version__,
     )
