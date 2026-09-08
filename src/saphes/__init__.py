@@ -49,6 +49,12 @@ from saphes.hungarian import (  # noqa: E402 - __version__ must precede these
     hungarian_letter_count,
     hungarian_letters,
 )
+from saphes.loanwords import (  # noqa: E402 - __version__ must precede these
+    FOREIGN_PATTERNS,
+    LoanwordResult,
+    loan_ratio_from_counts,
+    loanword_ratio,
+)
 from saphes.readability import (  # noqa: E402 - __version__ must precede these
     LIX_BANDS,
     LixResult,
@@ -73,10 +79,12 @@ from saphes.syntax import (  # noqa: E402 - __version__ must precede these
 )
 
 __all__ = [
+    "FOREIGN_PATTERNS",
     "LIX_BANDS",
     "DepToken",
     "DiversityResult",
     "LixResult",
+    "LoanwordResult",
     "MddResult",
     "MhdResult",
     "ThresholdRecommendation",
@@ -92,6 +100,8 @@ __all__ = [
     "lexical_diversity",
     "lix",
     "lix_from_counts",
+    "loan_ratio_from_counts",
+    "loanword_ratio",
     "mattr",
     "mdd_from_counts",
     "mean_dependency_distance",

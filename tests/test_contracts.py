@@ -9,7 +9,9 @@ If someone ever "helpfully" wires both metrics to a single token stream, the
 asymmetry tests here are what fail.
 
 ``saphes.syntax`` adds a third stream that is not a token stream at all — it
-needs head indices, which no tokeniser produces. Its guard is at the bottom.
+needs head indices, which no tokeniser produces. ``saphes.loanwords`` wants
+lemmas, like ``diversity`` and unlike ``readability``. Both guards are at the
+bottom.
 """
 
 import pytest
@@ -20,6 +22,7 @@ from saphes import (
     hungarian_stems,
     lexical_diversity,
     lix,
+    loanword_ratio,
     mean_dependency_distance,
     word_length,
 )
@@ -279,3 +282,64 @@ class TestParseIsAThirdStream:
         ]
         original = mean_dependency_distance([self.NIXON]).mdd
         assert mean_dependency_distance([rewired]).mdd != pytest.approx(original)
+
+
+class TestLoanwordsNeedLemmas:
+    """The loan-word ratio wants the same stream as diversity, not readability.
+
+    Its silent failure is the mirror of the LIX one: an inflected form misses
+    the lexicon, so a surface stream reports a plausible *low* ratio rather than
+    an error.
+    """
+
+    # A stand-in, not a claim: these are native Hungarian words, chosen because
+    # they appear in the bundled sample in inflected form. The contract under
+    # test is which token stream reaches the lookup, not what a real
+    # idegenszó lexicon would contain. The samples are far too small to
+    # support any claim about Hungarian, as PRE-MORTEM.md item 2 records.
+    LEXICON = {"kutya", "kert", "fa", "eszik"}
+
+    def test_no_cross_wiring_from_the_readability_side(self) -> None:
+        with pytest.raises(TypeError):
+            lix(lemmas=["ház", "kutya"])  # type: ignore[call-arg]
+
+    def test_loanword_ratio_takes_no_words_parameter(self) -> None:
+        with pytest.raises(TypeError):
+            loanword_ratio(words=["ház"], lexicon=self.LEXICON)  # type: ignore[call-arg]
+
+    def test_loanword_ratio_takes_no_unit_parameter(self) -> None:
+        """Unlike lexical_diversity: this metric has exactly one legal stream."""
+        with pytest.raises(TypeError):
+            loanword_ratio(["ház"], unit="lemma", lexicon=self.LEXICON)  # type: ignore[call-arg]
+
+    def test_a_raw_string_is_refused(self) -> None:
+        with pytest.raises(TypeError, match="raw string"):
+            loanword_ratio("ház és kutya", lexicon=self.LEXICON)  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("sample", INFLECTED, ids=lambda s: s.language)
+    def test_the_lemma_stream_never_finds_fewer(self, sample: Sample) -> None:
+        """Lemmatisation can only reveal lexicon entries, never hide them."""
+        surface = loanword_ratio(
+            sample.forms, lexicon=self.LEXICON, case_fold=True
+        ).matched
+        lemma = loanword_ratio(
+            sample.lemmas, lexicon=self.LEXICON, case_fold=True
+        ).matched
+        assert lemma >= surface
+
+    def test_the_asymmetry_is_real_on_hungarian(self) -> None:
+        """Pinned as a floor: a merged stream would give a gap of exactly 0.
+
+        Hungarian inflection hides four of the five occurrences here. Do not
+        relax this to a bare ``>``; the failure being guarded is a gap of
+        exactly zero, which ``>=`` would let through.
+        """
+        sample = load_hungarian()
+        surface = loanword_ratio(sample.forms, lexicon=self.LEXICON).matched
+        lemma = loanword_ratio(sample.lemmas, lexicon=self.LEXICON).matched
+        assert surface == 1
+        assert lemma == 6
+        assert lemma - surface >= 4
+
+    def test_the_result_records_which_stream_it_measured(self) -> None:
+        assert loanword_ratio(["ház"], lexicon=self.LEXICON).unit == "lemma"
