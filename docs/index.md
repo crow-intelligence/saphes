@@ -4,12 +4,14 @@
 
 # saphes
 
-Readability and lexical diversity — two metrics, done carefully, with the parameters other
-implementations hardcode.
+Readability, lexical diversity, syntactic complexity and loan-word ratio — a small set of
+metrics, done carefully, with the parameters other implementations hardcode.
 
 *saphes* — σαφής, "clear, plain, distinct". Aristotle makes clarity the chief virtue of λέξις
-(style); the other classical axis is ποικιλία, variety. The two metrics here are exactly
-those axes: **LIX measures clarity, TTR measures variety.**
+(style); the other classical axis is ποικιλία, variety. The package began as exactly those
+two axes — **LIX measures clarity, TTR measures variety** — and has since grown a third,
+**how hard a sentence is to hold in your head**, and a fourth, **how much of the vocabulary
+is still felt as foreign**.
 
 ```pycon
 >>> from saphes import lix
@@ -55,14 +57,14 @@ can be checked rather than trusted.
 
 - **[Explanation](explanation/two-token-streams.md)**
 
-    Why the two metrics need opposite input, why the threshold has to move, and why
+    Why the metrics need different input, why the threshold has to move, and why
     implementations disagree.
 
 </div>
 
 ## The one thing to get right
 
-The two metrics require **opposite** token streams.
+Each metric wants a **different** input, and two of them want opposites.
 
 | Metric | Wants | Because |
 |---|---|---|
@@ -71,6 +73,13 @@ The two metrics require **opposite** token streams.
 
 Feed the same list to both and exactly one is silently wrong — no error, no NaN, just a
 plausible number. See [The two token streams](explanation/two-token-streams.md).
+
+`mean_dependency_distance` and `mean_hierarchical_distance` want neither: they need **head
+indices**, which no tokeniser produces. Use [`saphes.adapters`](reference/adapters.md) to
+convert a HuSpaCy `Doc` or a CoNLL-U file, and see [what dependency distance
+measures](explanation/what-dependency-distance-measures.md). `loanword_ratio` wants lemmas,
+for the same reason `lexical_diversity` does — see [why loan words need
+lemmas](explanation/why-loanwords-need-lemmas.md).
 
 If you have no lemmatiser, `unit="stem"` is a third, degraded stream — see
 [Stemming is not lemmatisation](explanation/stemming-is-not-lemmatisation.md). It is declared

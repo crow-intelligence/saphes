@@ -56,6 +56,7 @@ nav:
   - Home: index.md
   - Tutorial:
       - tutorial/first-measurement.md
+      - tutorial/measure-syntactic-complexity.md
   - How-to guides:
       - Getting set up:
           - how-to/install.md
