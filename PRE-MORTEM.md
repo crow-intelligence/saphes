@@ -132,9 +132,16 @@ caveat.
 Surfaces as: a corpus of Hungarian history or parliamentary speech reporting an
 implausibly high idegenszó-arány, driven entirely by names.
 
-**[needs human decision]** — whether `th` should ship in `FOREIGN_PATTERNS` at all. Dropping
-it costs *thriller* and little else; keeping it costs every Tóth. It is a one-line change
-either way (`patterns=`), and a test pins both behaviours.
+**Resolved.** `th` ships, with two mitigations established from the MOKK Webcorpus rather
+than from memory. The digraph patterns carry a negative lookahead so they do not fire across
+Hungarian's `-hat`/`-het` and `-hoz`/`-hez`/`-höz` seams — *látható*, *kapható*, *állathoz*,
+*táncház* — which turned out to be **the larger problem by far**: 1,187 word forms and 2.5
+million tokens, productive, and unreachable by any list. The surnames and the lexicalised
+compounds (*mintha*, *otthon*, *hátha*) are in `HEURISTIC_EXCEPTIONS` with their corpus
+frequencies. Together they cut the tokens the heuristic flags by **16.5%**.
+
+The residual is unchanged in kind: a surname outside the list is still flagged, and only
+`pos_tags` will catch it. `exceptions=` is a parameter.
 
 ### 4e. A lexicon measures etymology and gets read as assimilation
 
