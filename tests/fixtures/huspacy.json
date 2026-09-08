@@ -1,0 +1,1196 @@
+{
+  "engine": "huspacy",
+  "model": "hu_core_news_md",
+  "model_version": "3.8.0",
+  "spacy_version": "3.8.16",
+  "pipeline": [
+    "tok2vec",
+    "senter",
+    "tagger",
+    "morphologizer",
+    "lookup_lemmatizer",
+    "trainable_lemmatizer",
+    "parser",
+    "ner"
+  ],
+  "sentences": [
+    {
+      "text": "A kutya ugat.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "kutya",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 2,
+          "text": "ugat",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 2,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "A bíróság a felperes keresetét elutasítja, és kötelezi a perköltség megfizetésére.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 5,
+          "text": "bíróság",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 3,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 4,
+          "text": "felperes",
+          "pos": "NOUN",
+          "dep": "nmod:att",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 5,
+          "text": "keresetét",
+          "pos": "NOUN",
+          "dep": "obj",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 5,
+          "text": "elutasítja",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 8,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 7,
+          "head_i": 8,
+          "text": "és",
+          "pos": "CCONJ",
+          "dep": "cc",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 5,
+          "text": "kötelezi",
+          "pos": "VERB",
+          "dep": "conj",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 10,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 10,
+          "head_i": 11,
+          "text": "perköltség",
+          "pos": "NOUN",
+          "dep": "nmod:att",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 8,
+          "text": "megfizetésére",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 12,
+          "head_i": 5,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Az 1959. évi IV. törvény 339. § (1) bekezdése szerint a károkozó felelősséggel tartozik.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 4,
+          "text": "Az",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "1959.",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 4,
+          "text": "évi",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 4,
+          "text": "IV.",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 10,
+          "text": "törvény",
+          "pos": "NOUN",
+          "dep": "nmod:att",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 10,
+          "text": "339.",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 5,
+          "text": "§",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 7,
+          "head_i": 10,
+          "text": "(",
+          "pos": "PROPN",
+          "dep": "nmod:att",
+          "is_punct": true
+        },
+        {
+          "i": 8,
+          "head_i": 7,
+          "text": "1",
+          "pos": "PROPN",
+          "dep": "flat:name",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 7,
+          "text": ")",
+          "pos": "PROPN",
+          "dep": "flat:name",
+          "is_punct": true
+        },
+        {
+          "i": 10,
+          "head_i": 15,
+          "text": "bekezdése",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 10,
+          "text": "szerint",
+          "pos": "ADP",
+          "dep": "case",
+          "is_punct": false
+        },
+        {
+          "i": 12,
+          "head_i": 13,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 13,
+          "head_i": 15,
+          "text": "károkozó",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 14,
+          "head_i": 15,
+          "text": "felelősséggel",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 15,
+          "head_i": 15,
+          "text": "tartozik",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 16,
+          "head_i": 15,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "A miniszterelnök tegnap bejelentette, hogy a kormány jövő héten dönt az ügyben.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 3,
+          "text": "miniszterelnök",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 3,
+          "text": "tegnap",
+          "pos": "ADV",
+          "dep": "advmod:tlocy",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 3,
+          "text": "bejelentette",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 10,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 5,
+          "head_i": 10,
+          "text": "hogy",
+          "pos": "SCONJ",
+          "dep": "mark",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 7,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 10,
+          "text": "kormány",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 9,
+          "text": "jövő",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 10,
+          "text": "héten",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 10,
+          "head_i": 3,
+          "text": "dönt",
+          "pos": "VERB",
+          "dep": "ccomp:obj",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 12,
+          "text": "az",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 12,
+          "head_i": 10,
+          "text": "ügyben",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 13,
+          "head_i": 3,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "János tegnap reggel a barátaival együtt elment a moziba.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 6,
+          "text": "János",
+          "pos": "PROPN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "tegnap",
+          "pos": "ADV",
+          "dep": "advmod:tlocy",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 6,
+          "text": "reggel",
+          "pos": "ADV",
+          "dep": "advmod:tlocy",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 4,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 6,
+          "text": "barátaival",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 6,
+          "text": "együtt",
+          "pos": "ADP",
+          "dep": "advmod:mode",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 6,
+          "text": "elment",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 8,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 6,
+          "text": "moziba",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 6,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "A vonat lassan, de biztosan befutott az állomásra.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 6,
+          "text": "vonat",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 6,
+          "text": "lassan",
+          "pos": "ADJ",
+          "dep": "advmod:mode",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 6,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 4,
+          "head_i": 6,
+          "text": "de",
+          "pos": "CCONJ",
+          "dep": "cc",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 6,
+          "text": "biztosan",
+          "pos": "ADJ",
+          "dep": "advmod:mode",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 6,
+          "text": "befutott",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 8,
+          "text": "az",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 6,
+          "text": "állomásra",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 6,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Nem megyek el.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "Nem",
+          "pos": "ADV",
+          "dep": "advmod",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 1,
+          "text": "megyek",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 1,
+          "text": "el",
+          "pos": "ADV",
+          "dep": "compound:preverb",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 1,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "El sem mentem volna.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 2,
+          "text": "El",
+          "pos": "ADV",
+          "dep": "compound:preverb",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "sem",
+          "pos": "ADV",
+          "dep": "advmod",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 2,
+          "text": "mentem",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 2,
+          "text": "volna",
+          "pos": "AUX",
+          "dep": "aux",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 2,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Micsoda nap!",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "Micsoda",
+          "pos": "PRON",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 1,
+          "text": "nap",
+          "pos": "NOUN",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 1,
+          "text": "!",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Hány óra?",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "Hány",
+          "pos": "PRON",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 1,
+          "text": "óra",
+          "pos": "NOUN",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 1,
+          "text": "?",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Minden jó, ha a vége jó.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "Minden",
+          "pos": "PRON",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 1,
+          "text": "jó",
+          "pos": "ADJ",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 6,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 3,
+          "head_i": 6,
+          "text": "ha",
+          "pos": "SCONJ",
+          "dep": "mark",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 5,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 6,
+          "text": "vége",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 1,
+          "text": "jó",
+          "pos": "ADJ",
+          "dep": "csubj",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 1,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Ki korán kel, aranyat lel.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 2,
+          "text": "Ki",
+          "pos": "ADV",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "korán",
+          "pos": "ADV",
+          "dep": "advmod:tlocy",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 2,
+          "text": "kel",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 5,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 4,
+          "head_i": 5,
+          "text": "aranyat",
+          "pos": "NOUN",
+          "dep": "obj",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 2,
+          "text": "lel",
+          "pos": "VERB",
+          "dep": "conj",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 2,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "A tanulmány szerzői – akik nemzetközi elismertségnek örvendenek – új módszert javasoltak.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 2,
+          "text": "tanulmány",
+          "pos": "NOUN",
+          "dep": "nmod:att",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 7,
+          "text": "szerzői",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 2,
+          "text": "–",
+          "pos": "NOUN",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 4,
+          "head_i": 7,
+          "text": "akik",
+          "pos": "PRON",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 6,
+          "text": "nemzetközi",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 7,
+          "text": "elismertségnek",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 7,
+          "text": "örvendenek",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 7,
+          "text": "–",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 9,
+          "head_i": 10,
+          "text": "új",
+          "pos": "ADJ",
+          "dep": "amod:att",
+          "is_punct": false
+        },
+        {
+          "i": 10,
+          "head_i": 11,
+          "text": "módszert",
+          "pos": "NOUN",
+          "dep": "obj",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 7,
+          "text": "javasoltak",
+          "pos": "VERB",
+          "dep": "conj",
+          "is_punct": false
+        },
+        {
+          "i": 12,
+          "head_i": 7,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "Szeretném megkérdezni, hogy Ön szerint mikor fejeződik be a felújítás.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 0,
+          "text": "Szeretném",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 0,
+          "text": "megkérdezni",
+          "pos": "VERB",
+          "dep": "xcomp",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 7,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 3,
+          "head_i": 7,
+          "text": "hogy",
+          "pos": "SCONJ",
+          "dep": "mark",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 7,
+          "text": "Ön",
+          "pos": "PRON",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 4,
+          "text": "szerint",
+          "pos": "ADP",
+          "dep": "case",
+          "is_punct": false
+        },
+        {
+          "i": 6,
+          "head_i": 7,
+          "text": "mikor",
+          "pos": "ADV",
+          "dep": "advmod:mode",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 0,
+          "text": "fejeződik",
+          "pos": "VERB",
+          "dep": "ccomp:obj",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 7,
+          "text": "be",
+          "pos": "ADV",
+          "dep": "compound:preverb",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 10,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 10,
+          "head_i": 7,
+          "text": "felújítás",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 0,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    },
+    {
+      "text": "A gyerekek a kertben játszanak, a szülők pedig a teraszon beszélgetnek.",
+      "tokens": [
+        {
+          "i": 0,
+          "head_i": 1,
+          "text": "A",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 1,
+          "head_i": 4,
+          "text": "gyerekek",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 2,
+          "head_i": 3,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 3,
+          "head_i": 4,
+          "text": "kertben",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 4,
+          "head_i": 4,
+          "text": "játszanak",
+          "pos": "VERB",
+          "dep": "ROOT",
+          "is_punct": false
+        },
+        {
+          "i": 5,
+          "head_i": 11,
+          "text": ",",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        },
+        {
+          "i": 6,
+          "head_i": 7,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 7,
+          "head_i": 11,
+          "text": "szülők",
+          "pos": "NOUN",
+          "dep": "nsubj",
+          "is_punct": false
+        },
+        {
+          "i": 8,
+          "head_i": 11,
+          "text": "pedig",
+          "pos": "CCONJ",
+          "dep": "cc",
+          "is_punct": false
+        },
+        {
+          "i": 9,
+          "head_i": 10,
+          "text": "a",
+          "pos": "DET",
+          "dep": "det",
+          "is_punct": false
+        },
+        {
+          "i": 10,
+          "head_i": 11,
+          "text": "teraszon",
+          "pos": "NOUN",
+          "dep": "obl",
+          "is_punct": false
+        },
+        {
+          "i": 11,
+          "head_i": 4,
+          "text": "beszélgetnek",
+          "pos": "VERB",
+          "dep": "conj",
+          "is_punct": false
+        },
+        {
+          "i": 12,
+          "head_i": 4,
+          "text": ".",
+          "pos": "PUNCT",
+          "dep": "punct",
+          "is_punct": true
+        }
+      ],
+      "sent_start": 0
+    }
+  ]
+}
