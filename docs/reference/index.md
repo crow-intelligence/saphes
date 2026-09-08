@@ -12,6 +12,7 @@
 | [`diversity`](diversity.md) | `lexical_diversity`, `ttr_from_counts`, `mattr` |
 | [`syntax`](syntax.md) | `mean_dependency_distance`, `mean_hierarchical_distance`, `dependency_distances`, `hierarchical_distances`, the two kernels, `DepToken` |
 | [`adapters`](adapters.md) | `from_conllu`, `from_spacy` — parser output in, `DepToken` out |
+| [`loanwords`](loanwords.md) | `loanword_ratio`, `FOREIGN_PATTERNS` — idegenszó-arány |
 | [`segment`](segment.md) | `words`, `sentences` — the dependency-free splitters |
 | [`hungarian`](hungarian.md) | `hungarian_letters`, `hungarian_letter_count`, the boundary table |
 | [`stem`](stem.md) | `hungarian_stems` — optional, behind the `snowball` extra |

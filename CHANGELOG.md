@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — the loan-word ratio
+
+- `saphes.loanwords` — `loanword_ratio`, `loan_ratio_from_counts`, `LoanwordResult` and
+  `FOREIGN_PATTERNS`. Measures *idegenszó-arány*, the share of a text's lemmas that are
+  foreign.
+
+- **saphes ships no lexicon, and the function refuses to run without one.** Supply a set,
+  enable the spelling heuristic, or both; asking for neither raises rather than reporting
+  that every word is native. What counts as a loan word is a judgement about a particular
+  vocabulary, and the package has no business making it silently.
+
+- `LoanwordResult` returns the ratio together with `matches` (the lemmas themselves),
+  `matched_by_lexicon` and `matched_by_heuristic` **kept separate**, `pattern_counts`
+  naming which spelling rules fired, `lexicon_id`, `lexicon_size` and `excluded`. Dictionary
+  evidence and a guess from spelling are different things and are not summed into one
+  unaccountable number.
+
+### Notes on the loan-word ratio
+
+- **The metric needs lemmas, and a surface stream fails silently.** `komputerekkel` misses a
+  lexicon containing `komputer`, so the wrong stream produces no error and a plausible
+  *lower* ratio. `LoanwordResult.unit` is the literal `"lemma"` rather than `TokenUnit`, the
+  same device `LixResult.unit` uses in the opposite direction, and
+  `TestLoanwordsNeedLemmas` in `tests/test_contracts.py` pins the asymmetry as a floor.
+- **`case_fold` defaults to `True` here and `False` in `lexical_diversity`.** Deliberate:
+  a lexicon is a list of dictionary forms and matching it is the whole operation, whereas
+  case in a type count is a claim about the text. The divergence is documented in both
+  places.
+- **The spelling heuristic flags common Hungarian surnames.** `th` survives in surnames as
+  an archaic spelling of plain *t*, so **Tóth, Horváth, Németh and Kossuth all match**, as
+  do Széchenyi on `ch` and Wesselényi on `w`. This was found by a Hypothesis property that
+  claimed native-alphabet words never trip the heuristic — the claim was false, and the
+  counter-example arrived in one draw. The heuristic is off by default, `pos_tags` excludes
+  proper nouns, the `__repr__` warns when any match came from spelling alone, and
+  `PRE-MORTEM.md` records whether `th` should ship at all as a decision for a human.
+- **A lexicon measures etymology; *idegenszó-arány* means assimilation.** A list built from
+  dictionary etymology fields contains *ablak*, *király* and *pénz* — Slavic borrowings no
+  speaker hears as foreign. Both quantities are defensible; publishing one under the
+  other's name is not. `lexicon_id` is recorded so the question has an answer.
+
 ### Added — hierarchical distance
 
 - `mean_hierarchical_distance`, `hierarchical_distances` and `mhd_from_counts` in

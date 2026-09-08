@@ -116,6 +116,40 @@ not about the *scheme*, and it is not enough. **[needs human decision]** whether
 free-text `scheme=` field should be added before 1.0, or whether that is a methods-section
 problem rather than a library problem.
 
+### 4d. The loan-word heuristic is turned on without tags
+
+`loanword_ratio(..., heuristic=True)` without `pos_tags` reports Tóth, Horváth, Németh,
+Kossuth, Széchenyi and Wesselényi as foreign words. Those are among the commonest surnames
+in Hungary, and `th` is in the default pattern set because it is a genuine marker in common
+nouns — *thriller*, *thallium* — where Hungarian otherwise writes plain *t*.
+
+So the default set is right for common nouns and badly wrong for proper ones, and nothing
+in the signature forces the caller to notice. `matched_by_heuristic` and `pattern_counts`
+are on the result for this reason, and the `__repr__` grows a warning line when any match
+came from spelling alone — the same device `DiversityResult` uses for the TTR length
+caveat.
+
+Surfaces as: a corpus of Hungarian history or parliamentary speech reporting an
+implausibly high idegenszó-arány, driven entirely by names.
+
+**[needs human decision]** — whether `th` should ship in `FOREIGN_PATTERNS` at all. Dropping
+it costs *thriller* and little else; keeping it costs every Tóth. It is a one-line change
+either way (`patterns=`), and a test pins both behaviours.
+
+### 4e. A lexicon measures etymology and gets read as assimilation
+
+*Idegenszó-arány* means the share of words still *felt* as foreign. A lexicon derived from
+dictionary etymology fields contains *ablak*, *király*, *pénz* and *asztal* — Slavic
+borrowings a thousand years old that no speaker experiences as foreign at all.
+
+Both quantities are defensible. They are not the same quantity, and the difference is
+invisible in the output: a ratio is a ratio. `lexicon_id` is recorded on every result so
+the question "which list was this?" has an answer, and saphes ships no lexicon precisely so
+that the choice cannot be made by default.
+
+Direction: whatever lexicon the loan-word study eventually produces must state which of the
+two it is, in the same breath as the number.
+
 ---
 
 ## Medium-impact fragilities

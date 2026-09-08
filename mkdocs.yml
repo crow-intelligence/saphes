@@ -62,6 +62,7 @@ nav:
       - Measuring:
           - how-to/measure-hungarian-text.md
           - how-to/pass-a-parse-to-saphes.md
+          - how-to/customise-the-loanword-lexicon.md
           - how-to/supply-a-sentence-count.md
           - how-to/compare-different-lengths.md
           - how-to/plug-in-a-sentence-splitter.md
@@ -81,6 +82,7 @@ nav:
           - reference/diversity.md
           - reference/syntax.md
           - reference/adapters.md
+          - reference/loanwords.md
           - reference/calibration.md
           - reference/segment.md
           - reference/hungarian.md
@@ -93,6 +95,7 @@ nav:
   - Explanation:
       - explanation/two-token-streams.md
       - explanation/what-dependency-distance-measures.md
+      - explanation/why-loanwords-need-lemmas.md
       - explanation/stemming-is-not-lemmatisation.md
       - explanation/why-the-threshold-moves.md
       - explanation/what-a-hungarian-lix-score-means.md

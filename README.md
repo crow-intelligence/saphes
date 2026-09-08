@@ -123,6 +123,8 @@ Every code block in the docs is executed by CI, so nothing there can drift.
 - [x] Optional Snowball stemming for callers with no lemmatiser, as a declared third unit
 - [x] Mean dependency distance and mean hierarchical distance, from any parser's output
 - [x] Zero-dependency adapters for HuSpaCy/spaCy and CoNLL-U/emtsv
+- [x] Loan-word ratio (*idegenszó-arány*) against a caller-supplied lexicon
+- [ ] A public-domain Hungarian loan-word lexicon to ship with it
 - [ ] The same study for Ancient Greek, for the Homer project
 - [ ] POS-filtered diversity, once lemmas carry tags
 - [ ] MTLD, HD-D, vocd-D, Maas
