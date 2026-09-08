@@ -307,11 +307,14 @@ class TestResultRecord:
     def test_avg_sentence_length(self) -> None:
         assert mean_dependency_distance([NIXON]).avg_sentence_length == 7.0
 
-    def test_parse_source_is_provenance_only(self) -> None:
+    def test_parser_is_provenance_only(self) -> None:
         plain = mean_dependency_distance([NIXON])
-        labelled = mean_dependency_distance([NIXON], parse_source="conllu")
-        assert labelled.parse_source == "conllu"
+        labelled = mean_dependency_distance([NIXON], parser="emtsv tok-dep-conll")
+        assert labelled.parser == "emtsv tok-dep-conll"
         assert labelled.mdd == plain.mdd
+
+    def test_parser_defaults_to_none_so_it_is_visibly_unset(self) -> None:
+        assert mean_dependency_distance([NIXON]).parser is None
 
 
 class TestSyntaxProperties:
@@ -745,9 +748,9 @@ class TestHierarchicalRecord:
         record = result.to_dict()
         assert record["total_depth"] / record["nodes"] == pytest.approx(result.mhd)
 
-    def test_parse_source_is_provenance_only(self) -> None:
-        labelled = mean_hierarchical_distance([NIXON], parse_source="conllu")
-        assert labelled.parse_source == "conllu"
+    def test_parser_is_provenance_only(self) -> None:
+        labelled = mean_hierarchical_distance([NIXON], parser="huspacy")
+        assert labelled.parser == "huspacy"
         assert labelled.mhd == mean_hierarchical_distance([NIXON]).mhd
 
 

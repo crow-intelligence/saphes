@@ -99,10 +99,3 @@ They are different numbers, not different roundings of one number. A naive
 implementation produces ``"micro"`` by accident, which is why the choice is
 recorded on the result rather than left implicit.
 """
-
-ParseSource: TypeAlias = Literal["conllu", "spacy", "provided"]
-"""Where a dependency parse came from.
-
-Provenance only — it never changes the arithmetic. ``"provided"`` means the
-caller built the token sequence themselves rather than going through an adapter.
-"""

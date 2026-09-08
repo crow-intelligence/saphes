@@ -24,35 +24,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   evidence and a guess from spelling are different things and are not summed into one
   unaccountable number.
 
-### Fixed — the heuristic's Hungarian false positives
+### Removed — the spelling heuristic
 
-- **The digraph patterns no longer fire across a morpheme seam.** Hungarian's potential
-  suffix `-hat`/`-het` and its allative `-hoz`/`-hez`/`-höz` place an `h` directly after a
-  stem, so any stem ending in `t`, `p` or `c` manufactured a digraph at the join: *látható*
-  read as `th`, *kapható* as `ph`, *táncház* as `ch`. Measured on the MOKK Webcorpus that
-  was **1,187 word forms and 2.5 million tokens** of pure false positive — far more damage
-  than the surnames, and productive, so no list could ever have covered it. `ch`, `ph` and
-  `th` now carry a negative lookahead.
+- **`FOREIGN_PATTERNS`, `HEURISTIC_EXCEPTIONS`, and the `heuristic` / `patterns` /
+  `exceptions` parameters are gone**, together with `matched_by_heuristic`,
+  `pattern_counts` and `exceptions_applied` on the result. `lexicon` is now a **required**
+  argument: there is no fallback, and omitting it is a `TypeError` rather than a number
+  computed against no evidence.
 
-- **`HEURISTIC_EXCEPTIONS`** holds what a rule cannot reach: 33 Hungarian surnames in
-  archaic orthography, where `th` spells a plain *t* (*Tóth* 87,321, *Horváth* 79,589,
-  *Kossuth* 62,854, *Németh* 58,127), and six lexicalised compounds where an `h`-initial
-  element meets a stem-final `t` (*mintha* 290,286, *otthon* 138,479, *itthon*, *hátha*,
-  *szentháromság*, *kétharmad*). Every entry carries its corpus frequency, so the list is
-  attested rather than remembered. `exceptions=` is a parameter.
+  Three measurements, taken against the shipped 15,203-lemma lexicon and the MOKK
+  Webcorpus, decided this:
 
-- Together these cut the tokens the heuristic flags across the Webcorpus by **16.5%** —
-  5.9 million fewer spurious hits per 1.78 billion tokens — while leaving *thriller*,
-  *technológia*, *pszichológia*, *abszolút* and *oxigén* flagged as before.
+  - **It covered 8.4% of the lexicon.** The words that carry an idegenszó-arány in
+    Hungarian prose — *prioritás*, *konszenzus*, *implementáció* — look nothing like
+    foreign words. A spelling rule was never a substitute for a list.
+  - **Hungarian manufactures the same spellings.** The suffixes `-hat`/`-het` and
+    `-hoz`/`-hez`/`-höz` put an `h` after a stem, so any stem ending in `t`, `p` or `c`
+    produces the digraph at the seam: *látható*, *kapható*, *állathoz*, *táncház* — 1,187
+    word forms and 2.5 million tokens, and productive, so unreachable by any list. Add the
+    surnames, where `th` spells a plain `t`: *Tóth*, *Horváth*, *Németh*, *Kossuth*.
+  - **It contradicted the lexicon.** The genuinely foreign words it added were
+    *technológia*, *abszolút* and *szexuális* — precisely the assimilated internationalisms
+    a frequency-selected lexicon excludes on purpose. Enabling it silently reversed the
+    caller's own decision.
 
-- `LoanwordResult` gains **`exceptions_applied`**, counting lemmas the heuristic would have
-  flagged but for the exception list.
+  A brief intermediate version added a morpheme-seam lookahead and a 39-entry exception
+  list of surnames and compounds. Both are removed with the heuristic they existed to
+  repair.
 
-- `-gh` surnames — *Balogh*, *Végh*, *Országh*, *Virágh* — need no exception and have none:
-  `gh` is not one of `FOREIGN_PATTERNS`, so nothing flagged them. A test pins that, so
-  adding a `gh` pattern later cannot silently reintroduce the problem.
+### Changed — `parse_source` is now `parser`
 
-### Notes on the loan-word ratio
+- **`parse_source` recorded the file *format*; `parser` records what produced the trees**,
+  which is the thing that moves the number. A parser carries the annotation convention of
+  the treebank it was trained on, and that convention decides which word is the head — the
+  entire input to a distance measure.
+
+  On one sentence of the fixture corpus, HuSpaCy and emtsv agree about every word except
+  three: `és` and `kötelezi` swap places in the coordination, and the full stop attaches to
+  the verb or to ROOT. MDD 1.600 against 1.500 — 6.7% apart, same words, same formula.
+  Across the corpus it is 1.6845 against 1.5328, and the two engines invert on MHD.
+
+  `parser` is free text (`"huspacy hu_core_news_md 3.8.0"`, `"emtsv tok-dep-conll"`) and
+  defaults to `None`, so an unlabelled result is visibly unlabelled. The old
+  `ParseSource` literal is removed: `"conllu"` was true of emtsv, the Szeged treebank and
+  UD Hungarian alike, which do not agree with each other.
+
+  Guidance, now in the module docstring and the how-to: where you have a choice, use the
+  spaCy model for the language — HuSpaCy for Hungarian. Choosing emtsv means choosing
+  Prague-style coordination and numbers that will not line up with anyone else's.
+
+### Notes on the loan-word ratio### Notes on the loan-word ratio
 
 - **The metric needs lemmas, and a surface stream fails silently.** `komputerekkel` misses a
   lexicon containing `komputer`, so the wrong stream produces no error and a plausible

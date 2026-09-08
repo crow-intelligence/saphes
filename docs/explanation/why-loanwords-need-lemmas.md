@@ -61,22 +61,34 @@ one, and records `lexicon_id` on every result so that the question "which list w
 has an answer. The judgement is yours because it is a judgement about a particular
 vocabulary and a particular research question, not a fact about the language.
 
-## Why the spelling heuristic is a fallback
+## Why there is no spelling heuristic
 
-Given how much a lexicon has to decide, a spelling rule looks attractive: *x*, *w*, *q*,
-*ch*, *ph*, *th* and word-initial clusters like *sztr-* really are foreign to native
-Hungarian orthography.
+An obvious shortcut suggests itself: *x*, *w*, *q*, *ch*, *ph*, *th* and word-initial
+clusters like *sztr-* really are foreign to native Hungarian orthography, so why not just
+look for them?
 
-It fails on names, and it fails hard. `th` survives in Hungarian surnames as an archaic
-spelling of plain *t*, and the surnames are not obscure — **Tóth** and **Németh** are among
-the commonest in the country, alongside **Horváth** and **Kossuth**. *Széchenyi* matches
-`ch`; *Wesselényi* matches `w`. On a page of Hungarian history the heuristic will report
-that nearly every proper noun is a foreign word.
+It was tried, and removed. Three findings killed it.
 
-No spelling rule can fix this, because the strings genuinely are identical. Only a tag can,
-which is why `pos_tags` is the accompanying parameter and why `matched_by_heuristic` is
-reported separately from `matched_by_lexicon`. A ratio that is mostly heuristic is a
-hypothesis; a ratio that is mostly lexicon is a measurement.
+**It covers almost nothing.** Only 8.4% of the shipped 15,203-lemma lexicon trips any such
+pattern. The words that actually carry an *idegenszó-arány* in Hungarian prose —
+*prioritás*, *konszenzus*, *implementáció*, *kompetencia* — look nothing like foreign words.
+A spelling rule was never a substitute for a list.
+
+**Hungarian manufactures the same spellings itself.** The potential suffix *-hat*/*-het* and
+the allative *-hoz*/*-hez*/*-höz* place an *h* directly after a stem, so any stem ending in
+*t*, *p* or *c* produces one of these digraphs at the seam: *látható*, *kapható*, *állathoz*,
+*táncház*. On the MOKK Webcorpus that is 1,187 word forms and 2.5 million tokens of false
+positive — and it is productive, so no exception list could ever have covered it. Add the
+surnames, where *th* spells a plain *t*: *Tóth*, *Horváth*, *Németh*, *Kossuth*.
+
+**Worst, it contradicted the lexicon.** The genuinely foreign words it found that a
+frequency-selected list does not contain were *technológia*, *abszolút*, *szexuális* —
+precisely the assimilated internationalisms such a list excludes on purpose. Enabling the
+heuristic silently reversed the caller's own decision about where *idegen szó* ends and
+ordinary Hungarian begins.
+
+A lexicon is evidence about a particular vocabulary. A spelling rule was a guess, and it
+disagreed with the evidence.
 
 ## See also
 

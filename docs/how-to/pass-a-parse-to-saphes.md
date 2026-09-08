@@ -12,7 +12,9 @@ from saphes import from_spacy, mean_dependency_distance
 nlp = hu_core_news_md.load()
 doc = nlp("János tegnap reggel a barátaival együtt elment a moziba.")
 
-result = mean_dependency_distance(from_spacy(doc), parse_source="spacy")
+result = mean_dependency_distance(
+    from_spacy(doc), parser="huspacy hu_core_news_md 3.8.0"
+)
 print(result.mdd)
 ```
 
@@ -42,7 +44,7 @@ docker run --rm -i mtaril/emtsv tok-dep-conll < corpus.txt > corpus.conllu
 from saphes import from_conllu, mean_dependency_distance
 
 parses = from_conllu(open("corpus.conllu").read())
-result = mean_dependency_distance(parses, parse_source="conllu")
+result = mean_dependency_distance(parses, parser="emtsv tok-dep-conll")
 ```
 
 emtsv's default output is **not** CoNLL-U. It carries a header row and orders its columns
@@ -86,7 +88,21 @@ They are different annotation schemes, not two attempts at one answer. On the fi
 sentences in `experiments/adapter_fixtures/corpus.txt`, HuSpaCy and emtsv disagree about
 where punctuation attaches, about bracket tagging, and consequently about MDD.
 
-Record which parser produced your trees. `parse_source` on the result notes the *format*,
-not the scheme — see [what dependency distance
-measures](../explanation/what-dependency-distance-measures.md) for why that distinction is
-the one that will bite you.
+**Record which parser produced your trees** — that is what `parser=` is for, and it is the
+field most worth filling. A parser carries the annotation convention of the treebank it was
+trained on, and the convention decides which word is the head, which is the entire input to
+a distance measure.
+
+On one sentence of the fixture corpus the two engines agree about every word except three:
+
+| token | HuSpaCy (UD) | emtsv (Prague) |
+|---|---|---|
+| `és` | → kötelezi | → elutasítja |
+| `kötelezi` | → elutasítja | → **és** |
+| `.` | → elutasítja | → **ROOT** |
+| **MDD** | **1.600** | **1.500** |
+
+Where you have a choice and no reason to prefer otherwise, use the spaCy model for the
+language — for Hungarian, HuSpaCy. Choosing emtsv means choosing Prague-style trees, and
+numbers that will not line up with anyone else's. See [what dependency distance
+measures](../explanation/what-dependency-distance-measures.md).
