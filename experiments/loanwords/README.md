@@ -37,6 +37,22 @@ re-fetchable, so it does not belong in an MIT repository). `coverage.py` writes
 - `coverage.py` — step 2, counts and reports. Also decides nothing.
 - `utils.py` — paths and logging, mirroring `lix_calibration/scripts/utils.py`.
 
+## Frequency is form-based, and inflates homographs
+
+`candidates.tsv` carries MOKK Webcorpus frequencies so the list can be worked in the order
+that matters. **The frequency is for the word *form*, across every sense and every
+etymology**, because the MOKK list is a frequency list and not a lemmatised corpus. Where a
+borrowing is a homograph of a common native word, the number is wrong by orders of
+magnitude:
+
+| lemma | listed freq | what the frequency is actually counting |
+|---|---:|---|
+| `lett` | 664,066 | the past tense of *lesz*, not the German-derived "Latvian" |
+| `von` | 213,369 | Hungarian *von* "to pull", not the Korean won |
+| `tag` | 105,537 | Hungarian *tag* "member", not the English *tag* |
+
+Use the ordering to decide **what to review first**, never to weight a published ratio.
+
 ## The three things that decide whether this study is right
 
 **1. Normalisation drops more than it looks.** `normalise()` rejects multiword entries,
@@ -57,19 +73,33 @@ threshold can be applied to it.
 
 ## Decisions that are not mine to make
 
-### A. Which vocabulary counts as *idegen szó*
+### A. Which vocabulary counts as *idegen szó* — **decided**
 
-Hungarian distinguishes **jövevényszó** — a borrowing so assimilated that no speaker hears
-it as foreign — from **idegen szó**, a word still felt as foreign. *Ablak*, *király*,
-*pénz* and *asztal* are all Slavic borrowings and all firmly in the first category.
+The authority is **Bakos Ferenc, *Idegen szavak és kifejezések szótára*** (Akadémiai
+Kiadó). A word is an *idegen szó* for this study if Bakos lists it. That settles the
+question no amount of data could: Hungarian distinguishes **jövevényszó** — a borrowing so
+assimilated that no speaker hears it as foreign — from **idegen szó**, a word still felt as
+foreign, and only a lexicographer draws that line.
 
-A lexicon built from etymology fields contains both, and a ratio computed against it
-measures **etymological origin**, not *idegenszó-arány*. Both are publishable numbers; they
-are not the same number.
+**Bakos is in copyright**, and in the EU its headword *selection* carries database right on
+top of that. So it is used as a **criterion, never as a source**: nobody scrapes it and no
+copy of its word list enters this repository. `candidates.tsv` is adjudicated against it by
+hand, and `decisions.tsv` — the verdicts — is the work product, exactly as
+`hungarian_boundaries/results/decisions.tsv` was.
 
-Nothing in the data distinguishes them. This wants a Hungarian speaker deciding, with the
-donor split in `findings.md` as the starting point and an audit trail like
-`hungarian_boundaries/results/decisions.tsv` as the output.
+Two findings from the data make the case that this had to be a lexicographic judgement
+rather than a rule:
+
+**The donor-era proxy fails on the modern side.** Ranked by corpus frequency, the "modern
+donor" stratum opens with `október`, `szeptember`, `november`, `május`, `december`,
+`január`, `március`, `augusztus`, `június`, `július`, `február` — every Latin month name —
+alongside `iskola`, `autó`, `pont` and `friss`. None is an *idegen szó*. They sit in the
+same stratum as `internet`, `absztrakt` and `regisztráció`, and no property of the data
+separates them.
+
+**The ancient filter, by contrast, holds.** Its top entries are `egész`, `világ`, `idő`,
+`dolog`, `szabad`, `úr`, `törvény`, `szent`, `kormány`, `munka`, `pénz`, `király`, `betű` —
+core vocabulary throughout, and correctly excluded.
 
 ### B. Whether a CC BY-SA asset belongs in an MIT repository
 
