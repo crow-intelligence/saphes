@@ -31,6 +31,10 @@ try:
 except PackageNotFoundError:  # pragma: no cover - only when running uninstalled
     __version__ = "0.0.0+unknown"
 
+from saphes.adapters import (  # noqa: E402 - __version__ must precede these
+    from_conllu,
+    from_spacy,
+)
 from saphes.calibration import (  # noqa: E402 - __version__ must precede these
     ThresholdRecommendation,
     recommended_threshold,
@@ -73,6 +77,8 @@ __all__ = [
     "ThresholdRecommendation",
     "__version__",
     "dependency_distances",
+    "from_conllu",
+    "from_spacy",
     "hungarian_letter_count",
     "hungarian_letters",
     "hungarian_stems",

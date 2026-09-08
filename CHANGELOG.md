@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — parser adapters
+
+- `saphes.adapters` — `from_spacy` and `from_conllu`, converting a parser's output into the
+  `DepToken` sequences `saphes.syntax` measures. **Neither imports spaCy, HuSpaCy, emtsv or
+  a CoNLL-U library.** `from_spacy` is duck-typed: it reads `doc.sents` and, per token, `i`,
+  `head`, `is_punct` and `pos_`, so it works on a spaCy `Doc`, a HuSpaCy `Doc`, or anything
+  presenting those attributes. `from_conllu` is a plain text reader over the specification,
+  and takes any CoNLL-U file, treebank or otherwise.
+
+- `experiments/adapter_fixtures/` — the benchmark corpus and the two generator scripts.
+  Fifteen Hungarian sentences chosen for the structures that break adapters: legalese, a
+  statute reference with nested brackets, verbless clauses, separated and negated igekötők,
+  an em-dash aside, an embedded question. The scripts write into `tests/fixtures/`, the same
+  way `lix_calibration/scripts/run.py` writes into `src/saphes/datasets/`.
+
+### Notes on the adapters
+
+The adapters were written against **real** HuSpaCy and emtsv output rather than hand-made
+trees, and that changed three things:
+
+- **spaCy marks the root with a self-loop** — `token.head is token`, not `head = 0`. Passed
+  through unconverted it reaches `mean_dependency_distance` as a token governing itself,
+  which raises correctly but for a baffling reason. `from_spacy` translates it.
+- **emtsv's default output is not CoNLL-U.** `tok-dep` emits a header row and the column
+  order `form wsafter anas lemma xpostag upostag feats id deprel head`; the `tok-dep-conll`
+  task emits real ten-column CoNLL-U. `from_conllu` rejects the former with a message
+  naming the task to use instead, rather than reading the wrong columns.
+- **`is_punct` and the POS tag disagree.** HuSpaCy tags `(` as `PROPN` while setting
+  `is_punct=True`, and hangs other tokens off it — which also makes the `orphaned_arcs` path
+  a real case rather than a hypothetical. `from_spacy` reads `is_punct`; `from_conllu`, which
+  has no such column, falls back to UPOS and documents the difference. `punct_tags` is a
+  parameter, because the choice changes the score.
+
+A fourth difference is pinned as a test rather than smoothed over: **emtsv attaches
+sentence-final punctuation to `0`**, giving every sentence two roots, where HuSpaCy attaches
+it to the main verb. `require_single_root=True` therefore discards the entire emtsv corpus
+and none of the HuSpaCy one, from the same fifteen sentences. The default
+`punctuation="collapse"` removes the punctuation before this matters, which is why it is the
+default.
+
+The two engines do not agree on MDD for the same sentences, and are not expected to. They
+are different annotation schemes, not two attempts at one answer.
+
 ### Added — syntactic complexity
 
 - `saphes.syntax` — mean dependency distance, the first metric here that measures

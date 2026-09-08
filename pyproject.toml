@@ -106,12 +106,14 @@ only_mutate = [
     "src/saphes/diversity.py",
     "src/saphes/segment.py",
     "src/saphes/syntax.py",
+    "src/saphes/adapters.py",
 ]
 pytest_add_cli_args_test_selection = [
     "tests/test_readability.py",
     "tests/test_diversity.py",
     "tests/test_segment.py",
     "tests/test_syntax.py",
+    "tests/test_adapters.py",
     "tests/test_contracts.py",
 ]
 pytest_add_cli_args = ["-p", "no:cacheprovider"]

@@ -10,9 +10,9 @@ example database during parallel mutation runs.
 Mutation is scoped to the arithmetic core and its fast tests (see `[tool.mutmut]` in
 `pyproject.toml`):
 
-- mutated: `readability.py`, `diversity.py`, `segment.py`, `syntax.py`
+- mutated: `readability.py`, `diversity.py`, `segment.py`, `syntax.py`, `adapters.py`
 - test selection: `test_readability.py`, `test_diversity.py`, `test_segment.py`,
-  `test_syntax.py`, `test_contracts.py`
+  `test_syntax.py`, `test_adapters.py`, `test_contracts.py`
 
 `datasets/` and `_types.py` are **not** mutated — they hold literals and type aliases, not
 logic. This is a deliberate cap, not full coverage.
@@ -21,21 +21,22 @@ logic. This is a deliberate cap, not full coverage.
 
 | metric | value |
 |--------|------:|
-| total mutants | 695 |
-| killed | 598 |
+| total mutants | 806 |
+| killed | 692 |
 | skipped (no covering test) | 22 |
-| **survived** | **75** |
-| **mutation score** | **~89%** (598 / 673 testable) |
+| **survived** | **92** |
+| **mutation score** | **~88%** (692 / 784 testable) |
 
 Per module, by mutants generated: `syntax` 311, `readability` 190, `diversity` 134,
-`segment` 60. Survivors: `syntax` 39, `segment` 24, `readability` 23, `diversity` 11.
+`adapters` 111, `segment` 60. Survivors: `syntax` 39, `segment` 24, `readability` 23,
+`adapters` 17, `diversity` 11.
 
-> **The three original modules account for 58 of the 75 survivors, against the 37 this
+> **The three original modules account for 58 of the 92 survivors, against the 37 this
 > file recorded when it was written.** That measurement dates from 2026-07-29, twelve
 > commits before the Hungarian iteration landed on `main`, and was never refreshed; the
 > mutant counts for those modules are essentially unchanged (384 against 386), so the
-> extra survivors are in code that changed under them. Adding `syntax.py` does not touch
-> those three modules. **The cause has not been investigated** — it belongs with the
+> extra survivors are in code that changed under them. Adding `syntax.py` and
+> `adapters.py` does not touch those three modules. **The cause has not been investigated** — it belongs with the
 > "mutation-testing baseline" item on the README roadmap, not with this change.
 
 The kernels are killed outright: every mutation that changes `lix_from_counts`,
@@ -97,6 +98,31 @@ classes, all invisible to a suite that looked complete:
 
 The third is the one worth remembering: a count-only assertion cannot tell a filter from
 its inverse.
+
+## What survives in `adapters.py`
+
+The first pass left 23 survivors, **5 of them not error-message text**. After one round
+of fixes there are 17, **all** of them error-message text: no surviving mutant changes an
+index, a head, a tag or a count. One was a genuine
+piece of dead code and was deleted rather than tested around:
+
+```python
+for number, raw in enumerate(text.splitlines(), start=1):
+    line = raw.rstrip("\n")     # splitlines() has already removed it
+```
+
+Both mutations of that `rstrip` survived because neither could change anything. The line is
+gone; `splitlines()` strips the terminator itself.
+
+The other four were test gaps, each pinning something the adapters actually promise:
+
+- `line.split("\t")` → `line.split(None)` — splitting on whitespace instead of tabs. Only
+  distinguishable when a field *contains* a space, which `MISC` does in glossed treebanks.
+- `DepToken(..., upos)` → `DepToken(..., None)` — the POS tag being dropped on the CoNLL-U
+  path. The doctest covered it; doctests are not in the mutation test selection, so a
+  unit test now covers it too.
+- `offset = tokens[0].i` → `None` — `offset` appears only in an error message, so the test
+  now asserts the token range that message reports.
 
 ## What survives in the original three modules
 
