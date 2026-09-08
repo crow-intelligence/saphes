@@ -13,8 +13,11 @@ from hypothesis import given, settings
 from saphes import (
     DepToken,
     dependency_distances,
+    hierarchical_distances,
     mdd_from_counts,
     mean_dependency_distance,
+    mean_hierarchical_distance,
+    mhd_from_counts,
 )
 from saphes.syntax import _sentence
 from tests.strategies import dependency_tree
@@ -521,3 +524,389 @@ class TestErrorMessages:
         """A plausible slip: one token, wrapped once instead of twice."""
         with pytest.raises(TypeError, match="4-tuple"):
             mean_dependency_distance([[1, 2, False, "X"]])
+
+
+class TestHierarchicalAnchors:
+    """MHD against the same published sentence, whose printed value is 2."""
+
+    def test_jing_liu_2015_mhd(self) -> None:
+        assert mean_hierarchical_distance([NIXON]).mhd == 2.0
+
+    def test_jing_liu_2015_depths(self) -> None:
+        assert hierarchical_distances(NIXON) == [2, 1, 1, 2, 3, 3]
+
+    def test_jing_liu_2015_counts(self) -> None:
+        result = mean_hierarchical_distance([NIXON])
+        assert result.total_depth == 12
+        assert result.nodes == 6
+        assert result.max_depth == 3
+
+    def test_averaging_the_root_in_would_give_the_wrong_answer(self) -> None:
+        """The root's HD is 0 and is excluded, so it is 12/6 and not 12/7."""
+        result = mean_hierarchical_distance([NIXON])
+        assert result.mhd != pytest.approx(12 / 7)
+        assert result.mhd == pytest.approx(12 / 6)
+
+    def test_the_two_metrics_are_different_numbers(self) -> None:
+        """Flat and long-range is not the same shape as deep and local."""
+        assert mean_dependency_distance([NIXON]).mdd != pytest.approx(
+            mean_hierarchical_distance([NIXON]).mhd
+        )
+
+
+class TestHierarchicalKernel:
+    """mhd_from_counts guards the way mdd_from_counts does."""
+
+    def test_worked_value(self) -> None:
+        assert mhd_from_counts(total_depth=12, nodes=6) == 2.0
+
+    def test_zero_nodes_raises(self) -> None:
+        with pytest.raises(ValueError, match="at least one non-root token"):
+            mhd_from_counts(total_depth=0, nodes=0)
+
+    def test_negative_total_raises(self) -> None:
+        with pytest.raises(ValueError, match="cannot be negative"):
+            mhd_from_counts(total_depth=-1, nodes=2)
+
+    def test_averaging_the_root_in_is_refused(self) -> None:
+        """12/13 would mean seven roots' worth of zeroes went into the mean."""
+        with pytest.raises(ValueError, match="root's HD of 0"):
+            mhd_from_counts(total_depth=12, nodes=13)
+
+    def test_a_single_node_at_depth_one(self) -> None:
+        assert mhd_from_counts(total_depth=1, nodes=1) == 1.0
+
+    def test_keyword_only(self) -> None:
+        with pytest.raises(TypeError):
+            mhd_from_counts(12, 6)  # type: ignore[misc]
+
+
+class TestHierarchicalStructure:
+    """Tree walking: cycles, depth, and punctuation sitting inside the tree."""
+
+    def test_a_cycle_raises_rather_than_looping(self) -> None:
+        cyclic = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 3, False, "N"),
+            DepToken(3, 2, False, "N"),
+        ]
+        with pytest.raises(ValueError, match=r"tokens \[2, 3\] form a cycle"):
+            mean_hierarchical_distance([cyclic])
+
+    def test_mdd_does_not_detect_that_cycle(self) -> None:
+        """MDD never walks the tree, so the cycle is invisible to it.
+
+        Not a defect: dependency distance is a function of positions alone. It
+        is why cycle detection lives in the MHD path and is documented there.
+        """
+        cyclic = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 3, False, "N"),
+            DepToken(3, 2, False, "N"),
+        ]
+        assert mean_dependency_distance([cyclic]).pairs == 2
+
+    def test_depth_is_path_length_not_head_distance(self) -> None:
+        chain = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 1, False, "N"),
+            DepToken(3, 2, False, "N"),
+            DepToken(4, 3, False, "N"),
+        ]
+        assert hierarchical_distances(chain) == [1, 2, 3]
+        assert mean_hierarchical_distance([chain]).max_depth == 3
+
+    def test_punctuation_inside_the_tree_is_counted(self) -> None:
+        """Dropping an interior punctuation node does not undo the depth it added."""
+        parse = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 1, True, "PUNCT"),
+            DepToken(3, 2, False, "N"),
+        ]
+        result = mean_hierarchical_distance([parse])
+        assert result.punct_ancestors == 1
+        assert hierarchical_distances(parse) == [2]
+
+    def test_a_leaf_punctuation_taints_nothing(self) -> None:
+        assert mean_hierarchical_distance([NIXON]).punct_ancestors == 0
+
+    def test_multiple_roots_each_sit_at_zero(self) -> None:
+        forest = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 1, False, "N"),
+            DepToken(3, 0, False, "V"),
+        ]
+        assert hierarchical_distances(forest) == [1]
+
+
+class TestHierarchicalPolicies:
+    """Punctuation and aggregation, which behave differently than for MDD."""
+
+    MEDIAL = [
+        DepToken(1, 3, False, "PRON"),
+        DepToken(2, 1, True, "PUNCT"),
+        DepToken(3, 0, False, "VERB"),
+    ]
+
+    def test_collapse_and_ignore_agree(self) -> None:
+        """MHD has no index space, so re-indexing cannot change it."""
+        assert hierarchical_distances(
+            self.MEDIAL, punctuation="collapse"
+        ) == hierarchical_distances(self.MEDIAL, punctuation="ignore")
+
+    def test_keep_counts_punctuation(self) -> None:
+        assert hierarchical_distances(self.MEDIAL, punctuation="keep") == [1, 2]
+        assert hierarchical_distances(self.MEDIAL, punctuation="collapse") == [1]
+
+    def test_macro_and_micro_disagree(self) -> None:
+        chain = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 1, False, "N"),
+            DepToken(3, 2, False, "N"),
+            DepToken(4, 3, False, "N"),
+        ]
+        macro = mean_hierarchical_distance([SHORT, chain]).mhd
+        micro = mean_hierarchical_distance([SHORT, chain], aggregation="micro").mhd
+        assert macro != pytest.approx(micro)
+
+    def test_unknown_policies_raise(self) -> None:
+        with pytest.raises(ValueError, match="punctuation must be"):
+            mean_hierarchical_distance([NIXON], punctuation="drop")  # type: ignore[arg-type]
+        with pytest.raises(ValueError, match="aggregation must be"):
+            mean_hierarchical_distance([NIXON], aggregation="mean")  # type: ignore[arg-type]
+
+    def test_flat_input_and_empty_input_are_refused(self) -> None:
+        with pytest.raises(TypeError, match="not tokens"):
+            mean_hierarchical_distance(NIXON)  # type: ignore[arg-type]
+        with pytest.raises(ValueError, match="at least one sentence"):
+            mean_hierarchical_distance([])
+
+    def test_a_root_only_sentence_is_skipped(self) -> None:
+        lone = [DepToken(1, 0, False, "INTJ")]
+        result = mean_hierarchical_distance([lone, NIXON])
+        assert result.skipped_sentences == 1
+        assert result.sentences == 1
+
+    def test_all_root_only_raises(self) -> None:
+        with pytest.raises(ValueError, match="no sentence yielded a non-root"):
+            mean_hierarchical_distance([[DepToken(1, 0, False, "INTJ")]])
+
+    def test_filters_and_counts_accumulate(self) -> None:
+        result = mean_hierarchical_distance([NIXON, FOX])
+        assert result.roots == 2
+        assert result.punctuation_dropped == 2
+        assert result.sentences == 2
+
+    def test_negative_min_sentence_length_raises(self) -> None:
+        with pytest.raises(ValueError, match="cannot be negative"):
+            mean_hierarchical_distance([NIXON], min_sentence_length=-1)
+
+    def test_min_sentence_length_and_single_root_filter(self) -> None:
+        fragment = [
+            DepToken(1, 0, False, "VERB"),
+            DepToken(2, 1, False, "X"),
+            DepToken(3, 0, False, "VERB"),
+        ]
+        filtered = mean_hierarchical_distance(
+            [fragment, NIXON], require_single_root=True
+        )
+        assert filtered.sentences == 1
+        assert filtered.mhd == 2.0
+        short = mean_hierarchical_distance([SHORT, NIXON], min_sentence_length=3)
+        assert short.skipped_sentences == 1
+
+
+class TestHierarchicalRecord:
+    """The MHD result carries its counts the same way the MDD one does."""
+
+    def test_repr_shows_the_counts(self) -> None:
+        text = repr(mean_hierarchical_distance([NIXON]))
+        assert "mhd=2.0000" in text
+        assert "max_depth=3" in text
+
+    def test_repr_omits_the_version(self) -> None:
+        import saphes
+
+        assert saphes.__version__ not in repr(mean_hierarchical_distance([NIXON]))
+
+    def test_records_the_saphes_version(self) -> None:
+        import saphes
+
+        result = mean_hierarchical_distance([NIXON])
+        assert result.saphes_version == saphes.__version__
+
+    def test_to_dict(self) -> None:
+        record = mean_hierarchical_distance([NIXON]).to_dict()
+        assert record["total_depth"] == 12
+        assert record["nodes"] == 6
+
+    def test_micro_score_is_recomputable_from_the_record(self) -> None:
+        result = mean_hierarchical_distance([NIXON, FOX], aggregation="micro")
+        record = result.to_dict()
+        assert record["total_depth"] / record["nodes"] == pytest.approx(result.mhd)
+
+    def test_parse_source_is_provenance_only(self) -> None:
+        labelled = mean_hierarchical_distance([NIXON], parse_source="conllu")
+        assert labelled.parse_source == "conllu"
+        assert labelled.mhd == mean_hierarchical_distance([NIXON]).mhd
+
+
+class TestHierarchicalProperties:
+    """Properties that must hold for every well-formed tree."""
+
+    @settings(max_examples=200, deadline=None)
+    @given(dependency_tree())
+    def test_depths_are_at_least_one(self, parse: list[DepToken]) -> None:
+        assert all(depth >= 1 for depth in hierarchical_distances(parse))
+
+    @settings(max_examples=200, deadline=None)
+    @given(dependency_tree())
+    def test_mhd_is_at_least_one_when_defined(self, parse: list[DepToken]) -> None:
+        try:
+            result = mean_hierarchical_distance([parse])
+        except ValueError:
+            return
+        assert result.mhd >= 1.0
+
+    @settings(max_examples=200, deadline=None)
+    @given(dependency_tree())
+    def test_the_mean_never_exceeds_the_deepest_path(
+        self, parse: list[DepToken]
+    ) -> None:
+        try:
+            result = mean_hierarchical_distance([parse])
+        except ValueError:
+            return
+        assert result.mhd <= result.max_depth
+
+    @settings(max_examples=200, deadline=None)
+    @given(dependency_tree())
+    def test_keep_counts_at_least_as_many_nodes(self, parse: list[DepToken]) -> None:
+        kept = hierarchical_distances(parse, punctuation="keep")
+        dropped = hierarchical_distances(parse, punctuation="collapse")
+        assert len(kept) >= len(dropped)
+
+    @settings(max_examples=200, deadline=None)
+    @given(dependency_tree())
+    def test_depth_never_exceeds_the_token_count(self, parse: list[DepToken]) -> None:
+        """A path cannot revisit a node, so it is shorter than the sentence."""
+        assert all(depth < len(parse) + 1 for depth in hierarchical_distances(parse))
+
+
+class TestHierarchicalBoundaries:
+    """Cases one step either side of a comparison, found by mutation testing.
+
+    As with ``TestBoundaries`` for MDD, every test here kills a mutant the rest
+    of the suite let through. Two require more than one sentence, and one
+    requires a head-final tree — a token whose governor comes *after* it — which
+    is the only shape that exercises walking more than one uncached ancestor.
+    """
+
+    HEAD_FINAL = [
+        DepToken(1, 3, False, "N"),
+        DepToken(2, 4, True, "PUNCT"),
+        DepToken(3, 2, False, "N"),
+        DepToken(4, 0, False, "V"),
+    ]
+
+    INTERIOR_PUNCT = [
+        DepToken(1, 0, False, "V"),
+        DepToken(2, 1, True, "PUNCT"),
+        DepToken(3, 2, False, "N"),
+    ]
+
+    def test_macro_divides_rather_than_multiplies(self) -> None:
+        """One sentence cannot tell sum/len from sum*len; two can."""
+        assert mean_hierarchical_distance([NIXON, SHORT]).mhd == pytest.approx(
+            (2.0 + 1.0) / 2
+        )
+
+    def test_min_sentence_length_keeps_a_sentence_of_exactly_that_length(self) -> None:
+        three = [
+            DepToken(1, 2, False, "DET"),
+            DepToken(2, 0, False, "NOUN"),
+            DepToken(3, 2, False, "ADJ"),
+        ]
+        kept = mean_hierarchical_distance([three, NIXON], min_sentence_length=3)
+        assert kept.sentences == 2
+        assert kept.skipped_sentences == 0
+
+    def test_counts_accumulate_across_sentences(self) -> None:
+        result = mean_hierarchical_distance([NIXON, FOX])
+        assert result.nodes == 6 + 8
+        assert result.tokens == 7 + 9
+        assert result.total_depth > 12
+
+    def test_punct_ancestors_accumulate(self) -> None:
+        result = mean_hierarchical_distance([self.INTERIOR_PUNCT] * 2)
+        assert result.punct_ancestors == 2
+
+    def test_punct_ancestors_propagate_down_a_chain(self) -> None:
+        """A head-final tree walks several uncached ancestors in one pass.
+
+        Every other fixture here has each token's governor already computed by
+        the time it is reached, so the propagation of "an ancestor was
+        punctuation" is never actually carried more than one step.
+        """
+        result = mean_hierarchical_distance([self.HEAD_FINAL])
+        assert result.punct_ancestors == 2
+        assert hierarchical_distances(self.HEAD_FINAL) == [3, 2]
+
+    def test_skipped_accumulates_for_the_length_filter(self) -> None:
+        result = mean_hierarchical_distance(
+            [SHORT, SHORT, NIXON], min_sentence_length=3
+        )
+        assert result.skipped_sentences == 2
+
+    def test_skipped_accumulates_for_the_root_filter(self) -> None:
+        fragment = [
+            DepToken(1, 0, False, "VERB"),
+            DepToken(2, 1, False, "X"),
+            DepToken(3, 0, False, "VERB"),
+        ]
+        result = mean_hierarchical_distance(
+            [fragment, fragment, NIXON], require_single_root=True
+        )
+        assert result.skipped_sentences == 2
+
+    def test_skipped_accumulates_for_root_only_sentences(self) -> None:
+        lone = [DepToken(1, 0, False, "INTJ")]
+        result = mean_hierarchical_distance([lone, lone, NIXON])
+        assert result.skipped_sentences == 2
+
+    def test_zero_depth_reports_the_root_convention(self) -> None:
+        """total_depth=0 with a real node means the root's 0 was averaged in."""
+        with pytest.raises(ValueError, match="root's HD of 0"):
+            mhd_from_counts(total_depth=0, nodes=1)
+
+    def test_errors_name_the_offending_sentence(self) -> None:
+        bad = [DepToken(1, 9, False, "X")]
+        with pytest.raises(ValueError, match="sentence 2,"):
+            mean_hierarchical_distance([SHORT, bad])
+        cyclic = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 3, False, "N"),
+            DepToken(3, 2, False, "N"),
+        ]
+        with pytest.raises(ValueError, match="sentence 2: tokens"):
+            mean_hierarchical_distance([NIXON, cyclic])
+
+    def test_single_sentence_errors_are_numbered_from_one(self) -> None:
+        with pytest.raises(ValueError, match="sentence 1,"):
+            hierarchical_distances([DepToken(1, 9, False, "X")])
+        cyclic = [
+            DepToken(1, 0, False, "V"),
+            DepToken(2, 3, False, "N"),
+            DepToken(3, 2, False, "N"),
+        ]
+        with pytest.raises(ValueError, match="sentence 1: tokens"):
+            hierarchical_distances(cyclic)
+
+    def test_every_parameter_reaches_the_record(self) -> None:
+        result = mean_hierarchical_distance(
+            [NIXON], punctuation="keep", aggregation="micro", min_sentence_length=2
+        )
+        assert result.punctuation == "keep"
+        assert result.aggregation == "micro"
+        assert result.min_sentence_length == 2
+        assert result.tokens == 7

@@ -21,23 +21,28 @@ logic. This is a deliberate cap, not full coverage.
 
 | metric | value |
 |--------|------:|
-| total mutants | 806 |
-| killed | 692 |
+| total mutants | 1,073 |
+| killed | 929 |
 | skipped (no covering test) | 22 |
-| **survived** | **92** |
-| **mutation score** | **~88%** (692 / 784 testable) |
+| detected by timeout | 1 |
+| **survived** | **121** |
+| **mutation score** | **~88%** (929 / 1,051 testable) |
 
-Per module, by mutants generated: `syntax` 311, `readability` 190, `diversity` 134,
-`adapters` 111, `segment` 60. Survivors: `syntax` 39, `segment` 24, `readability` 23,
-`adapters` 17, `diversity` 11.
+Mutants generated: `syntax` 578, `readability` 190, `diversity` 134, `adapters` 111,
+`segment` 60. **Survivors: `syntax` 68, `readability` 23, `adapters` 17, `diversity` 11,
+`segment` 2.**
 
-> **The three original modules account for 58 of the 92 survivors, against the 37 this
-> file recorded when it was written.** That measurement dates from 2026-07-29, twelve
-> commits before the Hungarian iteration landed on `main`, and was never refreshed; the
-> mutant counts for those modules are essentially unchanged (384 against 386), so the
-> extra survivors are in code that changed under them. Adding `syntax.py` and
-> `adapters.py` does not touch those three modules. **The cause has not been investigated** — it belongs with the
-> "mutation-testing baseline" item on the README roadmap, not with this change.
+> **Read survivor counts from the `: survived` lines only.** `mutmut results` also lists
+> the 22 "no covering test" mutants, and all 22 are in `segment.py` — the `punkt` branch
+> that is untested by design. Counting every line in that file reports `segment` at 24
+> rather than 2, and makes the three original modules look like 58 survivors instead of
+> 36. An earlier revision of this document made exactly that mistake and recorded a
+> regression that does not exist: those three modules stand at **36**, against the **37**
+> measured on 2026-07-29, which is no change at all.
+
+The one timeout is a kill, not a gap. `seen.add(node)` → `seen.add(None)` in `_depths`
+disables cycle detection, so the mutant loops forever on the cyclic-parse test rather than
+raising. It is detected by not finishing.
 
 The kernels are killed outright: every mutation that changes `lix_from_counts`,
 `ttr_from_counts`, the long-word comparison, or the MATTR sliding counter is caught by the
@@ -64,19 +69,27 @@ covered something and did not.
 
 ## What survives in `syntax.py`
 
-39 survivors: **37 mutations of error-message literals**, and **2 genuinely equivalent
-mutants**. No surviving mutant changes a distance, a count, or a score.
+68 survivors: **64 mutations of error-message literals**, and **4 equivalent mutants**. No
+surviving mutant changes a distance, a depth, a count or a score.
 
-The two equivalent ones are both the re-indexing base in `_arcs`:
+Two equivalents are the re-indexing base in `_arcs`:
 
 ```python
 renumbered[token.index] = len(renumbered) + 1   # -> - 1, or + 2
 ```
 
-Dependency distance is a *difference* of positions, so shifting every renumbered index by
-a constant cancels exactly. The dict's keys — which is what `token.head not in renumbered`
-tests — are untouched either way. These cannot be killed, and the fact that they cannot is
-the translation-invariance property the metric is supposed to have.
+Dependency distance is a *difference* of positions, so shifting every renumbered index by a
+constant cancels exactly, and the dict's keys — which is what `token.head not in
+renumbered` tests — are untouched either way. That these cannot be killed *is* the
+translation invariance the metric is supposed to have.
+
+The other two come from the MHD path:
+
+- `deepest = 0` → `deepest = 1`. Any sentence that contributes has a non-root token, so its
+  maximum depth is at least 1 and `max(0, x) == max(1, x)`.
+- `min_sentence_length: int = 0` → `1`. `len(content) < 0` is never true, and `len(content)
+  < 1` is true only for an all-punctuation sentence — which the `if not counted` branch
+  skips anyway, incrementing the same counter. Same outcome by two routes.
 
 ### What the first run found here
 
@@ -98,6 +111,21 @@ classes, all invisible to a suite that looked complete:
 
 The third is the one worth remembering: a count-only assertion cannot tell a filter from
 its inverse.
+
+### And again when MHD landed
+
+Adding hierarchical distance reintroduced the same three classes in the new code — 32
+non-string survivors, down to 4 after one round. The MHD-specific one worth recording:
+`sum(per_sentence) / len(per_sentence)` → `sum(per_sentence) * len(per_sentence)` survived
+every single-sentence test, because dividing by one and multiplying by one agree. Only a
+two-sentence macro assertion distinguishes them.
+
+One gap needed a *shape* of input the suite did not contain at all. The propagation of
+"an ancestor was punctuation" down a chain is only exercised when several uncached
+ancestors are walked in one pass, which needs a **head-final** tree — a token whose
+governor comes after it. Every other fixture had each governor already computed by the time
+its dependent was reached, so the propagation never carried more than one step and two
+mutations of it were invisible.
 
 ## What survives in `adapters.py`
 
@@ -126,9 +154,8 @@ The other four were test gaps, each pinning something the adapters actually prom
 
 ## What survives in the original three modules
 
-The classes below were written against the 37 survivors measured on 2026-07-29 and are
-retained as an account of *kinds*; the counts no longer add up to the current total (see
-the note under Score).
+36 survivors, against the 37 measured on 2026-07-29 — unchanged in substance. The account
+of *kinds* below still holds; only the tallies inside it are from that original run.
 
 **1. Error-message text (26 mutants).** Mutating the literals inside `msg = ...` — blanking
 them, upper-casing them, lower-casing them. No test asserts exact message text; the

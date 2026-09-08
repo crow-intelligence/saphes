@@ -1,4 +1,4 @@
-"""Mean dependency distance, a metric of syntactic processing load.
+"""Dependency distance and hierarchical distance, two metrics of syntactic load.
 
     MDD = (1/n) * sum |DD_i|
 
@@ -48,6 +48,22 @@ per-sentence means, which is not the same number as pooling every pair in the
 text and dividing once. Both are available; see
 :data:`saphes._types.DepAggregation`.
 
+**Mean hierarchical distance** is the vertical companion, equation (2) of the
+same paper::
+
+    MHD = (1/n) * sum HD_i
+
+where *HD* is "the path length traveling from the root to a certain node along
+the dependency edges". For the sentence above the depths are 2, 1, 1, 2, 3, 3 —
+again six terms, again excluding the root, whose own ``HD`` of 0 is *not*
+averaged in — giving MHD = 12/6 = 2.
+
+The two measure different things and come apart: a sentence can be flat and
+long-range, or deep and locally packed. Jing & Liu propose MHD precisely because
+MDD alone does not distinguish them. Note that hierarchical distance has **no
+index space**, so the punctuation policies that re-index for MDD are equivalent
+for MHD; only whether punctuation is counted at all differs.
+
 **This metric needs a parse, not a token stream.** :func:`saphes.readability.lix`
 wants surface forms and :func:`saphes.diversity.lexical_diversity` wants lemmas;
 this one wants head indices, and no amount of tokenising will produce them. Use
@@ -73,9 +89,13 @@ from saphes._types import DepAggregation, ParseSource, PunctuationPolicy
 __all__ = [
     "DepToken",
     "MddResult",
+    "MhdResult",
     "dependency_distances",
+    "hierarchical_distances",
     "mdd_from_counts",
     "mean_dependency_distance",
+    "mean_hierarchical_distance",
+    "mhd_from_counts",
 ]
 
 
@@ -683,6 +703,436 @@ aggregation='macro')
         punctuation=punctuation,
         punctuation_dropped=dropped_punct,
         orphaned_arcs=orphaned,
+        aggregation=aggregation,
+        roots=roots,
+        skipped_sentences=skipped,
+        min_sentence_length=min_sentence_length,
+        parse_source=parse_source,
+        saphes_version=saphes.__version__,
+    )
+
+
+def _depths(
+    tokens: Sequence[DepToken], *, ordinal: int
+) -> tuple[dict[int, int], dict[int, bool]]:
+    """Return each token's path length from the root, and whether that path is clean.
+
+    Contract:
+        Preconditions:
+
+        - Every head must already be validated by :func:`_sentence`. The one
+          thing that function cannot check is a cycle among non-root nodes,
+          because :func:`mean_dependency_distance` never walks the tree. This
+          one does, so the cycle is detected here and raises.
+
+        Guarantees:
+
+        - A root has depth 0.
+        - The second mapping says whether a token has a punctuation token
+          among its strict ancestors, which is what makes the inflated
+          depths countable rather than silent.
+    """
+    head_of = {token.index: token.head for token in tokens}
+    punct = {token.index for token in tokens if token.is_punct}
+    depth: dict[int, int] = {}
+    via: dict[int, bool] = {}
+
+    for token in tokens:
+        chain: list[int] = []
+        seen: set[int] = set()
+        node = token.index
+        while node != 0 and node not in depth:
+            if node in seen:
+                msg = (
+                    f"sentence {ordinal}: tokens {sorted(seen)} form a cycle, so "
+                    "there is no path from them to the root. Hierarchical "
+                    "distance is undefined on a graph that is not a tree."
+                )
+                raise ValueError(msg)
+            seen.add(node)
+            chain.append(node)
+            node = head_of[node]
+
+        if node == 0:
+            base_depth, base_via, start = 0, False, 0
+        else:
+            base_depth = depth[node]
+            base_via = via[node] or node in punct
+            start = 1
+
+        for step, index in enumerate(reversed(chain), start=start):
+            depth[index] = base_depth + step
+            via[index] = base_via
+            base_via = base_via or index in punct
+
+    return depth, via
+
+
+def mhd_from_counts(*, total_depth: int, nodes: int) -> float:
+    """Compute mean hierarchical distance from the two counts directly.
+
+    The arithmetic kernel, matching :func:`mdd_from_counts` in shape.
+    Keyword-only, because two bare ints in this order are trivially transposed.
+
+    Args:
+        total_depth: The sum of ``HD_i`` over every counted token.
+        nodes: *n*, the number of tokens counted. Must be positive.
+
+    Returns:
+        ``total_depth / nodes``.
+
+    Raises:
+        ValueError: If ``nodes`` is not positive, if ``total_depth`` is
+            negative, or if ``total_depth`` is less than ``nodes``.
+
+    Contract:
+        Preconditions:
+
+        - ``nodes`` must be positive. A sentence consisting only of a root
+          has none, and its MHD is undefined rather than zero.
+        - ``total_depth >= nodes``, because every non-root token is at depth
+          1 or more. A smaller total means the root's ``HD = 0`` was
+          averaged in, which is the single commonest way to get MHD wrong.
+
+    Examples:
+        Jing & Liu (2015: 164), "Mr. Nixon was to leave China today .":
+
+        >>> mhd_from_counts(total_depth=12, nodes=6)
+        2.0
+
+        Averaging the root in as a zero gives 12/7, and is refused:
+
+        >>> mhd_from_counts(total_depth=12, nodes=13)
+        Traceback (most recent call last):
+            ...
+        ValueError: total_depth (12) is less than nodes (13), but every counted...
+    """
+    if nodes <= 0:
+        msg = f"MHD needs at least one non-root token (n), got {nodes}"
+        raise ValueError(msg)
+    if total_depth < 0:
+        msg = f"total_depth cannot be negative, got {total_depth}"
+        raise ValueError(msg)
+    if total_depth < nodes:
+        msg = (
+            f"total_depth ({total_depth}) is less than nodes ({nodes}), but "
+            "every counted token sits at depth 1 or more. The root's HD of 0 "
+            "has probably been averaged in, or the arguments are transposed."
+        )
+        raise ValueError(msg)
+    return total_depth / nodes
+
+
+def hierarchical_distances(
+    parse: Sequence[DepToken] | Sequence[tuple[int, int, bool, str | None]],
+    *,
+    punctuation: PunctuationPolicy = "collapse",
+) -> list[int]:
+    """Return the hierarchical distances of one sentence.
+
+    *HD* is "the path length traveling from the root to a certain node along
+    the dependency edges" (Jing & Liu 2015: 164). The root itself is at 0 and
+    is **not** returned, exactly as it contributes no term to
+    :func:`dependency_distances`.
+
+    Args:
+        parse: One sentence, as :class:`DepToken` values or 4-tuples.
+        punctuation: ``"collapse"`` (the default) and ``"ignore"`` both drop
+            punctuation from the result; ``"keep"`` retains it. Unlike
+            dependency distance, **hierarchical distance has no index space**,
+            so re-indexing is meaningless here and the first two policies
+            coincide. The parameter exists so that one call site can serve both
+            metrics.
+
+    Returns:
+        One depth per counted token, in token order. Empty for a sentence with
+        nothing but roots.
+
+    Raises:
+        TypeError: If a token is neither a ``DepToken`` nor a 4-tuple.
+        ValueError: If the sentence is malformed, or if its tokens form a
+            cycle.
+
+    Contract:
+        Guarantees:
+
+        - Every returned depth is ``>= 1``; the root's 0 is excluded.
+        - A cycle raises rather than looping, which is the failure
+          :func:`mean_dependency_distance` cannot detect because it never
+          walks the tree.
+
+        Silences:
+
+        - A punctuation token sitting *inside* the tree rather than at a leaf
+          adds one to the depth of everything beneath it, and dropping it from
+          the average does not undo that. Universal Dependencies makes
+          punctuation a leaf, so this is normally moot;
+          :func:`mean_hierarchical_distance` counts the affected tokens as
+          ``punct_ancestors`` rather than leaving it invisible.
+
+    Examples:
+        Jing & Liu (2015: 164), whose published MHD is 2:
+
+        >>> parse = [
+        ...     DepToken(1, 2, False, "PROPN"),
+        ...     DepToken(2, 3, False, "PROPN"),
+        ...     DepToken(3, 0, False, "AUX"),
+        ...     DepToken(4, 3, False, "PART"),
+        ...     DepToken(5, 4, False, "VERB"),
+        ...     DepToken(6, 5, False, "PROPN"),
+        ...     DepToken(7, 5, False, "NOUN"),
+        ...     DepToken(8, 3, True, "PUNCT"),
+        ... ]
+        >>> hierarchical_distances(parse)
+        [2, 1, 1, 2, 3, 3]
+        >>> sum(hierarchical_distances(parse))
+        12
+    """
+    tokens = _sentence(parse, ordinal=1)
+    depth, _ = _depths(tokens, ordinal=1)
+    return [
+        depth[token.index]
+        for token in tokens
+        if token.head != 0 and (punctuation == "keep" or not token.is_punct)
+    ]
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class MhdResult:
+    """A mean hierarchical distance together with everything that produced it.
+
+    Attributes:
+        mhd: The mean hierarchical distance.
+        total_depth: The sum of ``HD_i`` over every counted token.
+        nodes: *n*, the number of tokens counted — non-root, and
+            non-punctuation unless ``punctuation="keep"``.
+        max_depth: The deepest path from a root in any contributing sentence.
+        tokens: Non-punctuation tokens in the sentences that contributed.
+        sentences: Sentences that contributed at least one token.
+        punctuation: The policy used.
+        punctuation_dropped: Punctuation tokens excluded from the count.
+        punct_ancestors: Counted tokens with a punctuation token among their
+            ancestors, whose depth is therefore inflated by one or more. 0 for
+            any treebank that makes punctuation a leaf.
+        aggregation: ``"macro"`` (mean of per-sentence means, per Jing & Liu
+            equation 4) or ``"micro"`` (every token pooled).
+        roots: Tokens with ``head=0`` across the contributing sentences.
+        skipped_sentences: Sentences that contributed nothing.
+        min_sentence_length: The filter applied. 0 means no filter.
+        parse_source: Where the parse came from. Provenance only.
+        saphes_version: Version of saphes that produced the result.
+    """
+
+    mhd: float
+    total_depth: int
+    nodes: int
+    max_depth: int
+    tokens: int
+    sentences: int
+    punctuation: PunctuationPolicy
+    punctuation_dropped: int
+    punct_ancestors: int
+    aggregation: DepAggregation
+    roots: int
+    skipped_sentences: int
+    min_sentence_length: int
+    parse_source: ParseSource
+    saphes_version: str
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-serialisable dict of the result.
+
+        Returns:
+            A plain dict with one key per field.
+
+        Examples:
+            >>> parse = [(1, 2, False, "DET"), (2, 0, False, "NOUN")]
+            >>> record = mean_hierarchical_distance([parse]).to_dict()
+            >>> record["nodes"]
+            1
+            >>> record["max_depth"]
+            1
+        """
+        return asdict(self)
+
+    def __repr__(self) -> str:
+        """Return a repr showing the score and the counts behind it."""
+        return (
+            f"MhdResult(mhd={self.mhd:.4f}, nodes={self.nodes}, "
+            f"max_depth={self.max_depth}, sentences={self.sentences}, "
+            f"aggregation={self.aggregation!r})"
+        )
+
+
+def mean_hierarchical_distance(
+    parses: Sequence[Sequence[DepToken]],
+    *,
+    punctuation: PunctuationPolicy = "collapse",
+    aggregation: DepAggregation = "macro",
+    min_sentence_length: int = 0,
+    require_single_root: bool = False,
+    parse_source: ParseSource = "provided",
+) -> MhdResult:
+    """Measure mean hierarchical distance over a sequence of parsed sentences.
+
+    Implements equation (2) of Jing & Liu (2015: 164) per sentence, and their
+    equation (4) to combine sentences.
+
+    MHD is the vertical companion to MDD: where dependency distance measures how
+    far apart related words are *in the string*, hierarchical distance measures
+    how deep they are *in the tree*. Jing & Liu propose it because the two come
+    apart — a sentence can be flat and long-range, or deep and locally packed —
+    and argue the pair characterises a language better than either alone.
+
+    Args:
+        parses: Parsed sentences. **Not** a flat token list; passing one raises.
+        punctuation: How to treat punctuation. ``"collapse"`` and ``"ignore"``
+            are equivalent here; see :func:`hierarchical_distances`.
+        aggregation: ``"macro"`` (the default) or ``"micro"``.
+        min_sentence_length: Discard sentences with fewer than this many
+            non-punctuation tokens. Defaults to 0, meaning no filter.
+        require_single_root: Discard sentences with more than one root.
+            Defaults to ``False``.
+        parse_source: Provenance label recorded on the result.
+
+    Returns:
+        An :class:`MhdResult`.
+
+    Raises:
+        TypeError: If ``parses`` is a flat sequence of tokens.
+        ValueError: If ``parses`` is empty, a parameter is not a recognised
+            value, a sentence is malformed or cyclic, or no sentence survives.
+
+    Contract:
+        Guarantees:
+
+        - ``mhd >= 1.0`` whenever a result is returned.
+        - ``max_depth >= mhd``, since the mean of a set of depths cannot
+          exceed its largest member.
+        - Empty input raises rather than returning ``0.0`` or ``nan``.
+
+        Silences:
+
+        - Sentences contributing no non-root token are skipped and counted in
+          ``skipped_sentences``.
+        - A punctuation token inside the tree inflates its descendants'
+          depths; ``punct_ancestors`` counts them.
+
+    Examples:
+        Jing & Liu (2015: 164), whose published MHD is 2:
+
+        >>> parse = [
+        ...     DepToken(1, 2, False, "PROPN"),
+        ...     DepToken(2, 3, False, "PROPN"),
+        ...     DepToken(3, 0, False, "AUX"),
+        ...     DepToken(4, 3, False, "PART"),
+        ...     DepToken(5, 4, False, "VERB"),
+        ...     DepToken(6, 5, False, "PROPN"),
+        ...     DepToken(7, 5, False, "NOUN"),
+        ...     DepToken(8, 3, True, "PUNCT"),
+        ... ]
+        >>> result = mean_hierarchical_distance([parse])
+        >>> result.mhd
+        2.0
+        >>> result.total_depth, result.nodes, result.max_depth
+        (12, 6, 3)
+
+        The same sentence is flatter than it is long-range:
+
+        >>> mean_dependency_distance([parse]).mdd < result.mhd
+        True
+
+        A cycle is refused rather than walked forever:
+
+        >>> cyclic = [DepToken(1, 0, False, "V"), DepToken(2, 3, False, "N"),
+        ...           DepToken(3, 2, False, "N")]
+        >>> mean_hierarchical_distance([cyclic])
+        Traceback (most recent call last):
+            ...
+        ValueError: sentence 1: tokens [2, 3] form a cycle, so there is no path...
+    """
+    if _is_flat(parses):
+        msg = (
+            "mean_hierarchical_distance() takes parsed sentences, not tokens: a "
+            "sequence of sequences of DepToken. You passed what looks like a "
+            "single sentence — wrap it, as mean_hierarchical_distance([parse])."
+        )
+        raise TypeError(msg)
+    if not parses:
+        msg = "mean_hierarchical_distance() needs at least one sentence, got none"
+        raise ValueError(msg)
+    if punctuation not in ("collapse", "ignore", "keep"):
+        msg = f"punctuation must be 'collapse', 'ignore' or 'keep', got {punctuation!r}"
+        raise ValueError(msg)
+    if aggregation not in ("macro", "micro"):
+        msg = f"aggregation must be 'macro' or 'micro', got {aggregation!r}"
+        raise ValueError(msg)
+    if min_sentence_length < 0:
+        msg = f"min_sentence_length cannot be negative, got {min_sentence_length}"
+        raise ValueError(msg)
+
+    per_sentence: list[float] = []
+    total_depth = 0
+    nodes = 0
+    deepest = 0
+    counted_tokens = 0
+    dropped_punct = 0
+    tainted = 0
+    roots = 0
+    skipped = 0
+
+    for ordinal, parse in enumerate(parses, start=1):
+        tokens = _sentence(parse, ordinal=ordinal)
+        content = [t for t in tokens if not t.is_punct]
+        sentence_roots = sum(1 for t in tokens if t.head == 0)
+        if len(content) < min_sentence_length:
+            skipped += 1
+            continue
+        if require_single_root and sentence_roots != 1:
+            skipped += 1
+            continue
+        depth, via = _depths(tokens, ordinal=ordinal)
+        counted = [
+            t
+            for t in tokens
+            if t.head != 0 and (punctuation == "keep" or not t.is_punct)
+        ]
+        if not counted:
+            skipped += 1
+            continue
+        depths = [depth[t.index] for t in counted]
+        per_sentence.append(sum(depths) / len(depths))
+        total_depth += sum(depths)
+        nodes += len(depths)
+        deepest = max(deepest, max(depth.values()))
+        counted_tokens += len(content)
+        dropped_punct += len(tokens) - len(content)
+        tainted += sum(1 for t in counted if via[t.index])
+        roots += sentence_roots
+
+    if not per_sentence:
+        msg = (
+            f"no sentence yielded a non-root token ({skipped} skipped). A "
+            "one-word sentence has none, and min_sentence_length or "
+            "require_single_root may have removed the rest."
+        )
+        raise ValueError(msg)
+
+    if aggregation == "macro":
+        mhd = sum(per_sentence) / len(per_sentence)
+    else:
+        mhd = mhd_from_counts(total_depth=total_depth, nodes=nodes)
+
+    return MhdResult(
+        mhd=mhd,
+        total_depth=total_depth,
+        nodes=nodes,
+        max_depth=deepest,
+        tokens=counted_tokens,
+        sentences=len(per_sentence),
+        punctuation=punctuation,
+        punctuation_dropped=dropped_punct,
+        punct_ancestors=tainted,
         aggregation=aggregation,
         roots=roots,
         skipped_sentences=skipped,

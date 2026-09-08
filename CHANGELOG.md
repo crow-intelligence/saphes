@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — hierarchical distance
+
+- `mean_hierarchical_distance`, `hierarchical_distances` and `mhd_from_counts` in
+  `saphes.syntax`, implementing equation (2) of Jing & Liu (2015: 164) and their equation
+  (4) for the text level. The paper's worked example is pinned as a doctest and reproduces
+  exactly: *"Mr. Nixon was to leave China today ."* gives depths 2, 1, 1, 2, 3, 3 and
+  MHD = 12/6 = 2.
+
+  MHD is the vertical companion to MDD. Where dependency distance measures how far apart
+  related words sit **in the string**, hierarchical distance measures how deep they sit
+  **in the tree**. Jing & Liu propose it because the two come apart: a sentence can be flat
+  and long-range, or deep and locally packed.
+
+- `MhdResult` carries `total_depth`, `nodes`, `max_depth`, `punct_ancestors` and the same
+  provenance fields as `MddResult`, so the score is recomputable from the record.
+
+### Notes on hierarchical distance
+
+- **The root leaves the denominator here too.** Its `HD` of 0 is not averaged in; the
+  worked example is 12/6, not 12/7. `mhd_from_counts` refuses a `nodes` larger than
+  `total_depth` for exactly that reason, since every counted token sits at depth 1 or more.
+- **Hierarchical distance has no index space**, so the punctuation policies that re-index
+  for MDD are equivalent for MHD. Only `"keep"` differs, by counting punctuation at all.
+  The parameter is retained so one call site can serve both metrics.
+- **Cycle detection lives here**, because this is the first function that walks the tree.
+  `mean_dependency_distance` is a function of positions alone and cannot see a cycle; a
+  test pins that difference rather than treating it as a defect in either.
+- A punctuation token sitting *inside* the tree adds one to the depth of everything beneath
+  it, and dropping it from the average does not undo that. `punct_ancestors` counts the
+  affected tokens rather than leaving the inflation invisible.
+- **The two engines invert.** Over the same fifteen sentences, HuSpaCy gives the higher MDD
+  (1.6845 against 1.5328) and the *lower* MHD (1.5492 against 1.8128), with emtsv building
+  trees two levels deeper. Neither parser is wrong; the annotation schemes trade flatness
+  against depth. This is the case MHD exists to expose, and it is pinned as a test.
+
+Dependency motifs (Jing & Liu 2017) are **not** included, and remain on the README roadmap.
+
 ### Added — parser adapters
 
 - `saphes.adapters` — `from_spacy` and `from_conllu`, converting a parser's output into the
